@@ -145,20 +145,20 @@ export default function Home() {
           <h2 className="mb-3 font-mono text-xs uppercase tracking-wider text-ink-400">
             By end of turn
           </h2>
-          <div className="overflow-hidden rounded-sm border border-ink-700">
-            <table className="w-full border-collapse font-mono text-sm">
+          <div className="overflow-x-auto rounded-sm border border-ink-700">
+            <table className="w-full min-w-[480px] border-collapse font-mono text-xs sm:text-sm">
               <thead className="bg-ink-900">
                 <tr>
-                  <th className="border-b border-ink-700 px-3 py-2.5 text-left text-xs font-normal uppercase tracking-wider text-ink-400">
+                  <th className="border-b border-ink-700 px-2 py-2 text-left text-[10px] font-normal uppercase tracking-wider text-ink-400 sm:px-3 sm:py-2.5 sm:text-xs">
                     Turn
                   </th>
-                  <th className="border-b border-ink-700 px-3 py-2.5 text-left text-xs font-normal uppercase tracking-wider text-ink-400">
+                  <th className="border-b border-ink-700 px-2 py-2 text-left text-[10px] font-normal uppercase tracking-wider text-ink-400 sm:px-3 sm:py-2.5 sm:text-xs">
                     Seen
                   </th>
                   {[1, 2, 3, 4].map((n) => (
                     <th
                       key={n}
-                      className="border-b border-ink-700 px-3 py-2.5 text-right text-xs font-normal uppercase tracking-wider text-ink-400"
+                      className="border-b border-ink-700 px-2 py-2 text-right text-[10px] font-normal uppercase tracking-wider text-ink-400 sm:px-3 sm:py-2.5 sm:text-xs"
                     >
                       ≥ {n}
                     </th>
@@ -168,15 +168,15 @@ export default function Home() {
               <tbody>
                 {table.map((row) => (
                   <tr key={row.turn} className="border-b border-ink-800 last:border-b-0">
-                    <td className="px-3 py-2.5 text-ink-100">T{row.turn}</td>
-                    <td className="px-3 py-2.5 text-ink-400">
+                    <td className="px-2 py-2 text-ink-100 sm:px-3 sm:py-2.5">T{row.turn}</td>
+                    <td className="px-2 py-2 text-ink-400 sm:px-3 sm:py-2.5">
                       {row.runesSeen}
                       <span className="text-ink-600">/12</span>
                     </td>
                     {row.probabilities.map((p, i) => (
                       <td
                         key={i}
-                        className="px-3 py-2.5 text-right text-ink-100"
+                        className="px-2 py-2 text-right text-ink-100 sm:px-3 sm:py-2.5"
                         style={{ backgroundColor: heatColor(p) }}
                       >
                         {pct(p)}
