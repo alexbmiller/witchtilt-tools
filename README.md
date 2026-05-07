@@ -1,13 +1,15 @@
-# Rune Odds — Riftbound Probability Calculator (v0.1)
+# Rune Odds — Riftbound Probability Calculator
 
 A small, fast tool for calculating rune draw probabilities in **Riftbound: League of Legends TCG**.
+
+> **Working on this project?** Read [`NEXT.md`](./NEXT.md) first — it describes the planned v0.2 work and provides full context for any AI tool or new contributor.
 
 ## What it does
 
 - Calculates the probability of drawing at least N runes of a target color by the end of each turn (1–6).
 - Accounts for going first (channel 2 on T1) vs going second (channel 3 on T1).
-- Shows opening-hand probabilities separately.
 - Pure client-side math (hypergeometric distribution). No backend, no tracking.
+- Currently models deckbuilding (no-recycling) odds. v0.2 will add recycling-aware mid-game odds. See [CHANGELOG.md](./CHANGELOG.md).
 
 ## Stack
 
@@ -62,6 +64,13 @@ Runes seen by end of turn T (the rune deck is sealed pre-game; channeling starts
 
 The 4-card opening hand in Riftbound is drawn from the **main deck**, not the rune deck.
 A separate main-deck calculator is on the roadmap.
+
+### Important limitation: recycling
+
+This tool models the **deckbuilding question** — odds assuming a fresh deck and no recycling. 
+In actual play, recycled runes go to the exact bottom of the deck and become unreachable 
+until everything above them is channeled. That changes the math mid-game. v0.2 will add 
+recycling-aware odds. See [CHANGELOG.md](./CHANGELOG.md) for the full discussion.
 
 ## License
 

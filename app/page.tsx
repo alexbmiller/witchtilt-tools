@@ -60,7 +60,7 @@ export default function Home() {
               <span className="text-ink-400">/</span>
               <span>ODDS</span>
             </h1>
-            <span className="font-mono text-xs text-ink-500">v0.1 · riftbound tcg</span>
+            <span className="font-mono text-xs text-ink-500">v0.1.1 · riftbound tcg</span>
           </div>
           <p className="mt-3 max-w-prose text-sm text-ink-300">
             Hypergeometric probability for a 12-card rune deck. Tells you the odds of drawing
@@ -137,6 +137,14 @@ export default function Home() {
             runes until your first turn. Going first, you channel 2 on T1, then +2 each turn
             after. Going second, you channel 3 on T1, then +2 each turn. The table below shows
             the cumulative probabilities by the end of each turn.
+          </p>
+          <p className="mt-3 max-w-prose font-mono text-xs leading-relaxed text-ink-500">
+            <span className="text-accent">Note:</span> these odds assume no recycling has
+            occurred. Recycled runes go to the exact bottom of the deck and become unreachable
+            until everything above them is channeled — that changes the math mid-game. This
+            tool is built for <em className="not-italic text-ink-300">deckbuilding</em>{" "}
+            questions ("does my rune split give me what I need?"), not live in-game decisions.
+            Recycling-aware odds are coming in v0.2.
           </p>
         </section>
 

@@ -4,6 +4,16 @@
  * Rune deck size is fixed at 12 in Riftbound. We use BigInt for combinatorics
  * to avoid floating point errors on the integer math, then convert to Number
  * only at the final probability division.
+ *
+ * IMPORTANT MODEL LIMITATION:
+ * This module assumes a uniformly-random rune deck — i.e., no recycling has
+ * occurred. In Riftbound, recycling places a rune at the EXACT BOTTOM of the
+ * deck (no reshuffle), which means the deck has known structure mid-game and
+ * the basic hypergeometric model no longer applies after the first recycle.
+ *
+ * This tool is intended for DECKBUILDING questions ("does my rune split give
+ * me what I need?") and is correct under the no-recycling assumption.
+ * Recycling-aware odds are a v0.2 feature. See CHANGELOG.md for details.
  */
 
 const DECK_SIZE = 12;
