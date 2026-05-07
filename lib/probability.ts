@@ -116,3 +116,103 @@ export function buildProbabilityTable(
 }
 
 export const DECK_SIZE_CONST = DECK_SIZE;
+
+// ---------------------------------------------------------------------------
+// Mid-game: generalized hypergeometric over an arbitrary-sized remaining pile
+// ---------------------------------------------------------------------------
+
+/**
+ * Generalized hypergeometric PMF where the population size N is not fixed at
+ * DECK_SIZE. Used for mid-game queries where we draw only from the remaining
+ * unknown segment (not the full deck).
+ *
+ * P(X = x) where X ~ Hypergeometric(N, K, n)
+ *   N = remaining pile size
+ *   K = target color in remaining pile
+ *   n = draws
+ */
+function hypergeomPmfN(N: number, K: number, n: number, x: number): number {
+  if (N === 0) return x === 0 ? 1 : 0;
+  if (x < 0 || x > n || x > K) return 0;
+  if (n - x > N - K) return 0;
+  const den = binom(N, n);
+  if (den === 0n) return 0;
+  const num = binom(K, x) * binom(N - K, n - x);
+  return Number(num) / Number(den);
+}
+
+/** P(X >= threshold) with arbitrary population size. */
+function hypergeomAtLeastN(N: number, K: number, n: number, threshold: number): number {
+  if (N === 0 || K === 0) return 0;
+  let p = 0;
+  const upper = Math.min(n, K);
+  for (let i = threshold; i <= upper; i++) {
+    p += hypergeomPmfN(N, K, n, i);
+  }
+  return p;
+}
+
+export interface MidGameParams {
+  /** K: target color runes in the face-down unknown segment (not channeled, not buried). */
+  targetInRemaining: number;
+  /** N: total runes in the face-down unknown segment. */
+  remainingPileSize: number;
+  goingFirst: boolean;
+  currentTurn: number;
+  maxThreshold?: number;
+}
+
+export interface MidGameTurnRow {
+  turn: number;
+  /** Raw cumulative draws from current turn (may exceed remainingPileSize at boundary). */
+  draws: number;
+  /** min(draws, remainingPileSize) — the count actually passed to hypergeom. */
+  effectiveDraws: number;
+  /** True when draws would reach into the buried segment — model breaks down here. */
+  exceedsBoundary: boolean;
+  probabilities: number[];
+}
+
+/**
+ * Build a table of upcoming-turn probabilities for mid-game mode.
+ *
+ * The deck partitions into three layers:
+ *   1. Channeled — already revealed, count known.
+ *   2. Remaining — face-down unknown cards at the top of the unplayed portion.
+ *      This is the only layer we draw from in a typical short-horizon query.
+ *   3. Buried — recycled runes at the EXACT bottom, known order, unreachable
+ *      until the remaining layer is exhausted.
+ *
+ * We model draws from layer 2 only. Once cumulative draws would exceed
+ * remainingPileSize the buried layer becomes reachable; those rows are flagged.
+ * The probabilities on flagged rows are still computed (using capped draws) so
+ * they serve as a ceiling rather than being blank, but they're not reliable.
+ */
+export function buildMidGameTable(params: MidGameParams): MidGameTurnRow[] {
+  const { targetInRemaining, remainingPileSize, goingFirst, currentTurn, maxThreshold = 4 } = params;
+  const channeled = runesSeenByTurn(currentTurn, goingFirst);
+  const rows: MidGameTurnRow[] = [];
+  let prevRawDraws = -1;
+
+  for (let i = 1; i <= 5; i++) {
+    const futureSeen = runesSeenByTurn(currentTurn + i, goingFirst);
+    const rawDraws = futureSeen - channeled;
+    // Stop once runesSeenByTurn caps out — no new draws, no new rows.
+    if (rawDraws === prevRawDraws) break;
+    prevRawDraws = rawDraws;
+
+    const exceedsBoundary = rawDraws > remainingPileSize;
+    const effectiveDraws = Math.min(rawDraws, remainingPileSize);
+
+    const probabilities: number[] = [];
+    for (let threshold = 1; threshold <= maxThreshold; threshold++) {
+      probabilities.push(
+        hypergeomAtLeastN(remainingPileSize, targetInRemaining, effectiveDraws, threshold),
+      );
+    }
+
+    rows.push({ turn: currentTurn + i, draws: rawDraws, effectiveDraws, exceedsBoundary, probabilities });
+  }
+
+  return rows;
+}

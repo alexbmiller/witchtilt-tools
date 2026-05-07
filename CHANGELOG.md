@@ -4,6 +4,43 @@ All notable changes to Rune Odds will be documented here. The goal is to be hone
 
 ---
 
+## [0.2.0] — 2026-05-06
+
+### Added
+- **Mid-game mode** — a mode switcher (Deckbuilding / Mid-game) now sits above the controls. Mid-game mode models the actual in-game rune pile state rather than assuming a fresh deck.
+- **Two direct inputs for mid-game:** "Target color in unknown pile" and "Unknown pile size" — the exact two numbers hypergeom needs. No decomposition into channeled/recycled counts; you tell the tool the pile state you observe.
+- **Current turn selector** (T1–T6) for mid-game. Determines how many runes your upcoming turns will draw, following the standard +2/turn schedule from your current position.
+- **Boundary warning:** rows where upcoming draws would exhaust the unknown pile and reach the buried (recycled) segment are flagged with ⚠ and dimmed. A banner explains that the model breaks down at that point.
+- **Share text updates** for mid-game: the copied text now includes current turn, going order, and pile state so Discord posts have full context.
+
+### Math model — mid-game
+
+The rune deck mid-game partitions into three layers:
+
+1. **Channeled** — already revealed. Count is determined by turn number + going order.
+2. **Remaining** (unknown) — face-down cards you'll draw from next. This is what the inputs describe.
+3. **Buried** — recycled runes at the exact bottom, in known fixed order. Unreachable until the remaining layer is exhausted.
+
+Channels draw from the remaining layer. The probability model is the same hypergeometric formula as deckbuilding, but with N = remaining pile size and K = target color in remaining pile:
+
+```
+P(X ≥ Y) = sum over y from Y to min(n, K) of:
+  C(K, y) * C(N-K, n-y) / C(N, n)
+```
+
+This is correct as long as draws don't reach the buried layer. Once they would, the buried cards enter in a deterministic fixed order — not randomly — and hypergeom no longer applies. Those rows are flagged.
+
+### Why direct inputs instead of channeled/recycled decomposition
+
+The mid-game input could have been "how many did you channel" + "how many did you recycle" per color. We chose not to for two reasons:
+
+1. Hypergeom only needs N and K. Those are derived facts; the pile state is the direct truth.
+2. Recycling non-target runes still affects N (it shrinks the remaining pile, increasing concentration). Asking "total recycled" plus "target recycled" as separate inputs adds cognitive overhead without adding information the model doesn't already have from N and K directly.
+
+The honest interface is: count the face-down runes, count the target color among them, enter both. Done.
+
+---
+
 ## [0.1.1] — 2026-05-06
 
 ### Added
@@ -79,7 +116,6 @@ Does not yet model recycling (see v0.1.1 note above).
 
 ## Roadmap
 
-- **v0.2** — recycling-aware odds. Inputs for "runes already recycled by color" so mid-game state can be modeled. Likely a separate "live game mode" toggle so the deckbuilding view stays simple.
 - **v0.3** — multi-color queries. "What are my odds of having ≥1 Red AND ≥1 Blue by turn 2?"
 - **v0.4** — domain requirements for specific cards (e.g., "P(I can cast a 2RR card on T4)").
 
