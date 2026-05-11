@@ -7,6 +7,7 @@ const display = IM_Fell_English_SC({
   subsets: ["latin"],
   variable: "--font-display",
   display: "swap",
+  adjustFontFallback: false,
 });
 
 export const metadata: Metadata = {
