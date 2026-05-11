@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import RuneMode from "./components/rune-mode";
 import CardMode from "./components/card-mode";
+import InfoPopover from "./components/info-popover";
 import { ACTIVE_BTN, INACTIVE_BTN } from "./components/shared";
 
 type Mode = "card" | "rune";
@@ -28,11 +29,14 @@ function Page() {
         {/* Header */}
         <header className="mb-10 border-b border-ink-700 pb-6">
           <div className="flex items-baseline justify-between">
-            <h1 className="font-mono text-xl tracking-tight text-ink-100">
-              <span className="text-accent">RUNE</span>
-              <span className="text-ink-400">/</span>
-              <span>ODDS</span>
-            </h1>
+            <div className="flex items-baseline gap-2">
+              <h1 className="font-mono text-xl tracking-tight text-ink-100">
+                <span className="text-accent">RUNE</span>
+                <span className="text-ink-400">/</span>
+                <span>ODDS</span>
+              </h1>
+              <InfoPopover />
+            </div>
             <span className="font-mono text-xs text-ink-500">v0.3 · riftbound tcg</span>
           </div>
           <p className="mt-3 max-w-prose text-sm text-ink-300">
