@@ -136,7 +136,8 @@ export default function RuneMode() {
               </div>
             </div>
             <p className="mt-2 font-mono text-xs text-ink-500">
-              How many runes of one color you&apos;re running.
+              Your rune deck is 12 cards total. Set how many of one color you&apos;re running; the
+              remaining 12 − N are other colors.
             </p>
           </div>
 
