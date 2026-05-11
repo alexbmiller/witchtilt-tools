@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { probabilityCanCast } from '../card-mode';
+import { probabilityCanCast, probabilityCanCastMidGame } from '../card-mode';
 import { parseCost, type Color } from '../cost-parser';
 import { hypergeomAtLeast } from '../probability';
 
@@ -152,5 +152,78 @@ describe('probabilityCanCast — wired through the parser', () => {
     const easy = probabilityCanCast(cost, deck({ R: 6, B: 6 }), 2, true);
     const hard = probabilityCanCast(cost, deck({ R: 2, B: 10 }), 2, true);
     expect(easy).toBeGreaterThan(hard);
+  });
+});
+
+describe('probabilityCanCastMidGame — edge cases', () => {
+  it('trivial cost "0" → P = 1 regardless of pile state', () => {
+    const cost = costOf('0');
+    expect(probabilityCanCastMidGame(cost, deck({ R: 6 }), 1, 3, true)).toBe(1);
+    expect(probabilityCanCastMidGame(cost, deck({}), 5, 6, false)).toBe(1);
+  });
+
+  it('queryTurn ≤ currentTurn → P = 0 for non-trivial', () => {
+    const cost = costOf('R');
+    expect(probabilityCanCastMidGame(cost, deck({ R: 4 }), 3, 3, true)).toBe(0);
+    expect(probabilityCanCastMidGame(cost, deck({ R: 4 }), 3, 2, true)).toBe(0);
+  });
+
+  it('empty pile + non-trivial color cost → P = 0', () => {
+    const cost = costOf('R');
+    expect(probabilityCanCastMidGame(cost, deck({}), 1, 3, true)).toBe(0);
+  });
+
+  it('total cost exceeds cumulative channels at queryTurn → P = 0', () => {
+    // Going first, T6 = 12 cumulative channels. Cost 13 > 12 → unaffordable.
+    const cost = costOf('12R'); // totalCost = 13
+    expect(probabilityCanCastMidGame(cost, deck({ R: 12 }), 1, 6, true)).toBe(0);
+  });
+
+  it('impossible color (pile missing required color) → P = 0', () => {
+    const cost = costOf('R');
+    expect(probabilityCanCastMidGame(cost, deck({ B: 6 }), 1, 3, true)).toBe(0);
+  });
+});
+
+describe('probabilityCanCastMidGame — hand-verified', () => {
+  // Cost RR, pile = 2R 2B (4 cards). currentTurn = 1 (channeled = 2 going first).
+  // queryTurn = 2 → cumulative = 4, newDraws = 2. effectiveDraws = min(2, 4) = 2.
+  // P(≥2 R in 2 draws from 4-card pile with 2R) = C(2,2)·C(2,0) / C(4,2) = 1/6.
+  it('RR cost, 2R/2B pile, T1→T2 going first → 1/6', () => {
+    const cost = costOf('RR');
+    const p = probabilityCanCastMidGame(cost, deck({ R: 2, B: 2 }), 1, 2, true);
+    expect(Math.abs(p - 1 / 6)).toBeLessThan(EPS);
+  });
+
+  // Cost 1R (total=2). Pile = 3R 3B. currentTurn=2 (channeled=4 going first),
+  // queryTurn=3 → cumulative=6, newDraws=2. totalCost=2, cumulative≥2 ✓.
+  // pileSize=6, effective=2.
+  // P(≥1 R in 2 draws from 6-card pile with 3R) = 1 - C(3,2)/C(6,2) = 1 - 3/15 = 4/5.
+  it('1R cost (total 2), 3R/3B pile, T2→T3 going first → 4/5', () => {
+    const cost = costOf('1R');
+    const p = probabilityCanCastMidGame(cost, deck({ R: 3, B: 3 }), 2, 3, true);
+    expect(Math.abs(p - 0.8)).toBeLessThan(EPS);
+  });
+});
+
+describe('probabilityCanCastMidGame — regression vs deckbuilding wrapper', () => {
+  // When currentTurn = 0 (pre-game) and pile = full 12-card deck, the mid-game
+  // wrapper should reduce to the same answer as probabilityCanCast.
+  it('currentTurn=0 + full-12 pile matches probabilityCanCast for the same query', () => {
+    const cases = [
+      { cost: 'RR', deck: deck({ R: 4, B: 4, G: 4 }) },
+      { cost: '2RB', deck: deck({ R: 6, B: 6 }) },
+      { cost: 'R', deck: deck({ R: 1, B: 11 }) },
+    ];
+    for (const c of cases) {
+      const cost = costOf(c.cost);
+      for (const goingFirst of [true, false]) {
+        for (const queryTurn of [1, 2, 3, 4]) {
+          const a = probabilityCanCast(cost, c.deck, queryTurn, goingFirst);
+          const b = probabilityCanCastMidGame(cost, c.deck, 0, queryTurn, goingFirst);
+          expect(Math.abs(a - b)).toBeLessThan(EPS);
+        }
+      }
+    }
   });
 });
