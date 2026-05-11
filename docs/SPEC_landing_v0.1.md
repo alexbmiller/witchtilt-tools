@@ -273,3 +273,5 @@ Deferred from v0.1 by explicit decision. Track here so they don't get lost when 
 - **og-image.png.** Generate the 1200×630 social card and wire it into `metadata.openGraph.images` in `app/page.tsx`. Currently omitted entirely (rather than referencing a missing asset) to avoid broken-image icons on platforms that try to prefetch. Until this lands, links shared on Discord/X show no preview.
 
 - **Font choice was IM Fell English SC** (decided 2026-05-11), not DM Serif Display as originally specced in §3. Update §3 if the choice sticks past v0.1.1.
+
+- **Sidebar nav (deferred to v1+).** Considered 2026-05-11 as an alternative to the tools grid: collapsible sidebar that fans out to show selected-tool detail, routing unchanged. Held back because at 2 live tools + 4 coming-soon, the grid reads cleaner and a sidebar would feel oversized for the catalog. **Trigger to revisit: 5+ live tools.** At that scale the grid becomes a 3+ row block and a sidebar earns its keep.
