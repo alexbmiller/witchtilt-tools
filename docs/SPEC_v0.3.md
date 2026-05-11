@@ -198,7 +198,7 @@ Add `lib/__tests__/` (or whatever existing test convention the repo uses — ver
 
 - **Trivial cost** (`0`): P = 1 always
 - **Impossible cost** (`RRR` when deck has 2 R): P = 0 always
-- **Simple cost** (`1`, deck = 12R, T1 going first): P = 2/12 ≈ 0.167
+- **Simple cost** (`R`, deck = 1R + 11other, T1 going first, 2 draws): P = 1 − C(11,2)/C(12,2) = 11/66 = 1/6 ≈ 0.167
 - **Regression** (single-color cost equivalent to old v0.2 query): output matches v0.2 to floating-point precision
 - **Two-color AND** (`RB`, deck = 6R/6B, T1 going first, 2 channels): hand-verify against multivariate PMF
 - **Edge: cost > deck size** (`12RR`): P = 0 always
