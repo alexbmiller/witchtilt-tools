@@ -98,7 +98,7 @@ This block is intentionally small. ~50 words. One link, to YouTube.
 
 Four lines, muted color, small text.
 
-- Line 1: Copyright + year + name. `© 2026 WitchTilt. Built by Alex Miller.`
+- Line 1: Copyright + year. `© 2026 WitchTilt.`
 - Line 2: `YouTube` (linked). TikTok / Instagram / X added once the first video launches and handles are confirmed.
 - Line 3: `Source on GitHub` link to the witchtilt-tools repo.
 - Line 4 (Riot fan content disclaimer, required per Riot's Legal Jibber Jabber Section 6, even smaller / more muted than the other lines):
