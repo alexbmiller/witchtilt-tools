@@ -55,7 +55,7 @@ export default function RuneMode() {
             `T${row.turn} (${row.runesSeen} seen): ≥1 ${pct(row.probabilities[0])} | ≥2 ${pct(row.probabilities[1])} | ≥3 ${pct(row.probabilities[2])} | ≥4 ${pct(row.probabilities[3])}`,
         ),
         "",
-        "via runeodds.app",
+        "via witchtilt.com",
       ].join("\n");
     }
     return [
@@ -65,7 +65,7 @@ export default function RuneMode() {
           `T${row.turn} (+${row.draws}): ≥1 ${pct(row.probabilities[0])} | ≥2 ${pct(row.probabilities[1])}${row.exceedsBoundary ? " ⚠" : ""}`,
       ),
       "",
-      "via runeodds.app",
+      "via witchtilt.com",
     ].join("\n");
   }, [mode, deckTable, midTable, target, goingFirst, currentTurn, safeTarget, safePile]);
 

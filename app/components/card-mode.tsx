@@ -160,7 +160,7 @@ export default function CardMode() {
         `Rune odds — cost ${parsed.cost.raw.trim()} vs ${compStr}, going ${goingFirst ? "first" : "second"}:`,
         ...rows.map((r) => `T${r.turn} (${r.channels} channels): ${pct(r.p)}`),
         "",
-        "via runeodds.app",
+        "via witchtilt.com",
       ].join("\n");
     }
     return [
@@ -170,7 +170,7 @@ export default function CardMode() {
           `T${r.turn} (+${r.channels} new): ${pct(r.p)}${r.exceedsBoundary ? " ⚠" : ""}`,
       ),
       "",
-      "via runeodds.app",
+      "via witchtilt.com",
     ].join("\n");
   }, [parsed, composition, rows, goingFirst, subMode, currentTurn]);
 
