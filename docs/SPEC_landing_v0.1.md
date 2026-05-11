@@ -90,7 +90,7 @@ Between the tools grid and the footer, a single short paragraph that frames the 
 
 **Copy** (draft, to be reviewed):
 
-> WitchTilt is one person building tools and content for trading card games. The math is real. The takes are sharp. New tools ship when they're ready, not on a schedule. If you want to know when something new lands, [subscribe on YouTube](https://youtube.com/@witchtilt).
+> WitchTilt is one person building tools and content for trading card games. The math is real. The takes are genuine. New tools ship when they're ready, not on a schedule. If you want to know when something new lands, [subscribe on YouTube](https://youtube.com/@witchtilt).
 
 This block is intentionally small. ~50 words. One link, to YouTube.
 
@@ -259,3 +259,19 @@ The landing page replaces `app/page.tsx` content but doesn't touch `/runes` (tha
 After merge: `witchtilt.com/` shows the landing page. `runes.witchtilt.com` continues to serve the calculator. `decks.witchtilt.com` 404s until the pastebin ships. That 404 is fine for the brief window; the Deck Pastebin card on the landing page should still link to it, accepting the short 404 window as the cost of shipping landing-then-pastebin instead of vice versa.
 
 (Alternative order: ship pastebin first, *then* landing page. This avoids the 404 window. But the landing page is simpler than the pastebin, so shipping landing first gives faster psychological momentum. Pope to decide. Both orders are defensible.)
+
+---
+
+## 11. Follow-ups for v0.1.1
+
+Deferred from v0.1 by explicit decision. Track here so they don't get lost when v0.1 ships.
+
+- **Social handle URLs.** Footer ships in v0.1 with the YouTube link only; TikTok, Instagram, and X links need to be added and verified before the first video launch. Channel HQ says the handle is `witchtilt` across all four platforms — confirm the exact URL pattern per service (`@witchtilt` vs `/witchtilt`) and wire into `app/components/landing/footer.tsx`.
+
+- **About-strip copy revisit.** §2.3 draft copy ships as written in v0.1 ("WitchTilt is one person building tools and content for trading card games. The math is real. The takes are genuine..."). Revisit once content cadence emerges — the "new tools ship when they're ready, not on a schedule" line anchors expectations and may want refining.
+
+- **og-image.png.** Generate the 1200×630 social card and wire it into `metadata.openGraph.images` in `app/page.tsx`. Currently omitted entirely (rather than referencing a missing asset) to avoid broken-image icons on platforms that try to prefetch. Until this lands, links shared on Discord/X show no preview.
+
+- **Font choice was IM Fell English SC** (decided 2026-05-11), not DM Serif Display as originally specced in §3. Update §3 if the choice sticks past v0.1.1.
+
+- **Sidebar nav (deferred to v1+).** Considered 2026-05-11 as an alternative to the tools grid: collapsible sidebar that fans out to show selected-tool detail, routing unchanged. Held back because at 2 live tools + 4 coming-soon, the grid reads cleaner and a sidebar would feel oversized for the catalog. **Trigger to revisit: 5+ live tools.** At that scale the grid becomes a 3+ row block and a sidebar earns its keep.
