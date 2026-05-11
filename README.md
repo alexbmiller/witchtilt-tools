@@ -1,77 +1,68 @@
-# Rune Odds — Riftbound Probability Calculator
+# witchtilt-tools
 
-A small, fast tool for calculating rune draw probabilities in **Riftbound: League of Legends TCG**.
+Source for **WitchTilt**, a small set of tools for the **Riftbound: League of Legends TCG** (and eventually other card games). Live at **https://www.witchtilt.com**.
 
-> **Working on this project?** Read [`NEXT.md`](./NEXT.md) first — it describes the planned v0.2 work and provides full context for any AI tool or new contributor.
+> **Working on this repo?** Read [`CLAUDE.md`](./CLAUDE.md) first — current architecture, math model, and locked rules. [`CHANGELOG.md`](./CHANGELOG.md) has shipped releases.
 
-## What it does
+## What's here
 
-- Calculates the probability of drawing at least N runes of a target color by the end of each turn (1–6).
-- Accounts for going first (channel 2 on T1) vs going second (channel 3 on T1).
-- Pure client-side math (hypergeometric distribution). No backend, no tracking.
-- Currently models deckbuilding (no-recycling) odds. v0.2 will add recycling-aware mid-game odds. See [CHANGELOG.md](./CHANGELOG.md).
+- **Rune Odds** (live) — hypergeometric probability calculator for the 12-card Riftbound rune deck. Two modes:
+  - **Card mode**: type a card cost like `2RR`, see your odds of paying it by turn N. Multivariate hypergeometric over your deck's color split.
+  - **Rune mode**: simpler "≥k of one color by turn N" queries. Useful for deckbuilding intuition about a single color.
+  - Each mode has **Deckbuilding** (fresh deck) and **Mid-game** (recycling-aware) sub-modes.
+- More tools queued — Deck Pastebin, Pack EV, Resolution Order Sequencer, Draft Simulator. See [`CLAUDE.md`](./CLAUDE.md) for the roadmap.
 
 ## Stack
 
-- Next.js 14 + TypeScript
+- Next.js 14 (App Router) + TypeScript
 - Tailwind CSS
-- Deploys to Vercel for free in ~60 seconds
+- Vitest for the math layer (59 tests as of v0.3)
+- Deployed on Vercel, auto-deploys on push to `main`
 
 ## Run locally
 
 ```bash
 npm install
-npm run dev
+npm run dev      # http://localhost:3000
+npm test         # one-shot vitest
 ```
 
-Open http://localhost:3000
+Other scripts: `npm run build`, `npm run start`, `npm run lint`, `npm run test:watch`.
 
-## Deploy
+## Math model
 
-```bash
-# from the project root, after creating a GitHub repo
-git init
-git add .
-git commit -m "v0.1"
-git remote add origin <your-repo-url>
-git push -u origin main
-```
+The rune deck is exactly 12 cards, sealed pre-game. Drawing without replacement → hypergeometric distribution. Implemented with BigInt combinatorics in `lib/probability.ts` to avoid floating-point error on integer math.
 
-Then go to vercel.com → Import Project → pick the repo → Deploy. That's it.
-
-## Roadmap
-
-- v0.2: Mulligan logic (recycle up to 2, draw from top without reshuffle)
-- v0.3: Multi-color queries ("P(≥1 Red AND ≥1 Blue by T2)")
-- v0.4: Domain requirements for specific cards (e.g. "P(I can cast a 2RR card on T4)")
-
-## Math notes
-
-The rune deck is exactly 12 cards. Drawing without replacement → hypergeometric distribution.
-
-For target K of color in deck of size N=12, drawing n cards, probability of exactly x successes:
-
-```
-P(X = x) = C(K, x) * C(N-K, n-x) / C(N, n)
-```
-
-Implemented with BigInt combinatorics to avoid floating-point error on the integer math.
-
-Runes seen by end of turn T (the rune deck is sealed pre-game; channeling starts on T1):
-
-- Going first: 2 (T1) + 2*(T-1) for T ≥ 2
-- Going second: 3 (T1) + 2*(T-1) for T ≥ 2
+**Channels per turn**:
+- Going first: 2 (T1), then +2 each turn (T2: 4, T3: 6, ...).
+- Going second: 3 (T1), then +2 each turn (T2: 5, T3: 7, ...).
 
 The 4-card opening hand in Riftbound is drawn from the **main deck**, not the rune deck.
-A separate main-deck calculator is on the roadmap.
 
-### Important limitation: recycling
+**Rune mode (univariate)** — for a target color with K runes in a deck of size N, after channeling n:
 
-This tool models the **deckbuilding question** — odds assuming a fresh deck and no recycling. 
-In actual play, recycled runes go to the exact bottom of the deck and become unreachable 
-until everything above them is channeled. That changes the math mid-game. v0.2 will add 
-recycling-aware odds. See [CHANGELOG.md](./CHANGELOG.md) for the full discussion.
+```
+P(X ≥ k) = sum over y from k to min(n, K) of:
+  C(K, y) * C(N-K, n-y) / C(N, n)
+```
+
+**Card mode (multivariate)** — for a parsed cost over a partitioned deck, sum the multivariate PMF over every hand satisfying the per-color minima:
+
+```
+P(X_1=k_1, ..., X_m=k_m) = [Π C(K_i, k_i)] / C(N, n)
+```
+
+Generic mana is handled at the wrapper layer as a hand-size check; non-required colors collapse into a single "rest" group for efficiency.
+
+**Mid-game mode** samples from the unknown pile only. Already-channeled runes are excluded from the sample. Recycled runes go to the exact bottom of the deck and are unreachable until everything above them has been channeled — rows where draws would reach the buried segment are flagged ⚠. See [`docs/SPEC_v0.3.md`](./docs/SPEC_v0.3.md) for the full model and [`CHANGELOG.md`](./CHANGELOG.md) for the conceptual writeup.
 
 ## License
 
-MIT, do whatever.
+This project is released under the [MIT License](LICENSE).
+
+You're free to use, copy, modify, and distribute this code, including for
+commercial purposes. The only requirement is to preserve the copyright
+notice and license text. There's no warranty — use at your own risk.
+
+The **WitchTilt** name, logo, and brand identity are not part of this
+license and remain the property of the author.
