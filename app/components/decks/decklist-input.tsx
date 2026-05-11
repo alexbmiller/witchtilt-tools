@@ -5,14 +5,14 @@ import { COLORS, type Color } from "@/lib/cost-parser";
 import { parseDecklist, type ParsedDeck } from "@/lib/decklist-parser";
 import ManaCurveTable from "./mana-curve-table";
 
-const EXAMPLE_PLACEHOLDER = `Paste your decklist here. Format:
-
-1 Viktor, Leader
+const EXAMPLE_DECK = `1 Viktor, Leader
 3 Daring Poro
 3 Machine Evangel
 3 Stupefy
 7 Mind Rune
 5 Order Rune`;
+
+const EMPTY_PLACEHOLDER = "Paste your decklist here…";
 
 const COLOR_LABELS: Record<Color, string> = {
   R: "Fury",
@@ -35,9 +35,14 @@ const COLOR_SWATCH: Record<Color, string> = {
 export default function DecklistInput() {
   const [text, setText] = useState("");
 
-  const parsed: ParsedDeck = useMemo(() => parseDecklist(text), [text]);
-
   const hasInput = text.trim().length > 0;
+  // When the textarea is empty, parse a built-in example so the mana curve
+  // renders on first visit instead of a blank state. As soon as the user
+  // pastes anything, we switch to parsing their input.
+  const sourceText = hasInput ? text : EXAMPLE_DECK;
+  const parsed: ParsedDeck = useMemo(() => parseDecklist(sourceText), [sourceText]);
+
+  const showingExample = !hasInput;
   const foundNothing = hasInput && parsed.cards.length === 0 && parsed.totalRunes === 0;
 
   return (
@@ -49,7 +54,7 @@ export default function DecklistInput() {
         <textarea
           value={text}
           onChange={(e) => setText(e.target.value)}
-          placeholder={EXAMPLE_PLACEHOLDER}
+          placeholder={EMPTY_PLACEHOLDER}
           rows={14}
           spellCheck={false}
           className="w-full rounded-sm border border-ink-700 bg-ink-950 px-3 py-3 font-mono text-sm text-ink-100 placeholder:text-ink-600 focus:border-accent focus:outline-none"
@@ -82,8 +87,13 @@ export default function DecklistInput() {
         </ul>
       )}
 
-      {hasInput && !foundNothing && (
+      {!foundNothing && (
         <>
+          {showingExample && (
+            <p className="rounded-sm border border-accent/40 bg-accent/5 px-3 py-2 font-mono text-xs text-accent/90">
+              Showing example deck (7 Mind + 5 Order). Paste your own decklist above to replace.
+            </p>
+          )}
           <ParsedSummary parsed={parsed} />
           <ManaCurveTable runes={parsed.runes} />
         </>

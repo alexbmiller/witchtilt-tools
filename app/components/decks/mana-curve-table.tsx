@@ -8,7 +8,13 @@ import { generateCostSpread } from "@/lib/cost-spread";
 import { buildShareText } from "@/lib/share-text";
 import { ACTIVE_BTN, INACTIVE_BTN, heatColor, pct } from "../shared";
 
-const TURNS = [1, 2, 3, 4, 5, 6] as const;
+// T6 is always dropped — the cost spread caps at total=4 and by T6 you've
+// channeled the entire rune deck, so every row reads 100%. T5 is shown only
+// when at least one row hasn't fully saturated by T4 (matches the same 99.95%
+// threshold pct() uses to round up to 100%).
+const ALL_TURNS = [1, 2, 3, 4, 5] as const;
+const T4_INDEX = 3;
+const SATURATION_THRESHOLD = 0.9995;
 
 const COLOR_TEXT_CLASS: Record<Color, string> = {
   R: "text-red-400",
@@ -43,18 +49,22 @@ export default function ManaCurveTable({ runes }: { runes: RuneCounts }) {
 
   const costs = useMemo(() => generateCostSpread(runes), [runes]);
 
-  const matrix = useMemo(() => {
+  const fullMatrix = useMemo(() => {
     return costs.map((cost) => {
       const result = parseCost(cost);
-      if (!result.ok) return TURNS.map(() => 0);
-      return TURNS.map((t) => probabilityCanCast(result.cost, runes, t, goingFirst));
+      if (!result.ok) return ALL_TURNS.map(() => 0);
+      return ALL_TURNS.map((t) => probabilityCanCast(result.cost, runes, t, goingFirst));
     });
   }, [costs, runes, goingFirst]);
+
+  const showT5 = fullMatrix.some((row) => row[T4_INDEX] < SATURATION_THRESHOLD);
+  const turns = showT5 ? ALL_TURNS : ALL_TURNS.slice(0, T4_INDEX + 1);
+  const matrix = showT5 ? fullMatrix : fullMatrix.map((row) => row.slice(0, T4_INDEX + 1));
 
   const onlyGeneric = costs.length === 3;
 
   async function handleCopy() {
-    const text = buildShareText({ runes, costs, matrix, turns: TURNS, goingFirst });
+    const text = buildShareText({ runes, costs, matrix, turns, goingFirst });
     try {
       await navigator.clipboard.writeText(text);
       setJustCopied(true);
@@ -96,7 +106,7 @@ export default function ManaCurveTable({ runes }: { runes: RuneCounts }) {
               <th className="border-b border-ink-700 px-2 py-2 text-left text-[10px] font-normal uppercase tracking-wider text-ink-400 sm:px-3 sm:py-2.5 sm:text-xs">
                 Cost
               </th>
-              {TURNS.map((t) => (
+              {turns.map((t) => (
                 <th
                   key={t}
                   className="border-b border-ink-700 px-2 py-2 text-center text-[10px] font-normal uppercase tracking-wider text-ink-400 sm:px-3 sm:py-2.5 sm:text-xs"

@@ -115,7 +115,7 @@ Given a parsed deck, the page renders:
 ### Mana curve (the main output)
 - A table showing P(can cast) by turn for **a representative spread of costs, derived from the deck's actual rune colors**
 - Cost-spread shape (decided 2026-05-11, derived-from-colors approach): `1`, `2`, `3`, then one- and two-color variants of the shape `CC`, `1C`, `2C` per color present in the deck (and `CD`, `1CD`, `2CC` for any two-color combinations present). Mono-color decks see ~6 colored rows; two-color decks see ~12. v0.2 will let users specify their actual deck's costs directly.
-- Each row = a cost, each column = a turn (T1–T6), cell shows probability
+- Each row = a cost, each column = a turn. The table always shows T1–T4 (the decision-making range for cheap costs). **T5 is shown only when at least one row hasn't fully saturated by T4** (any cell with P < 99.95%); otherwise it's just visual noise. T6 is never shown — by T6 you've channeled the entire 12-card rune deck and every cost rounds to 100%.
 - Going first / going second toggle (same as Rune Odds)
 
 Rationale: hardcoding R/B-only costs (the original v0.1 plan) makes the tool actively misleading for non-R/B decks (every color row would show `0%`). Deriving the spread from the pasted deck's runes keeps the table small and meaningful for any color composition without scope-creeping into user-customizable costs.
@@ -236,3 +236,13 @@ Each of those is a real v0.2+ feature on its own. None of them ship in v0.1.
 Work on branch `decks-pastebin-v0.1`. Same pattern as Rune Odds v0.3 — don't push to main. Vercel preview deployment for the branch is the testing ground. Merge to main when done criteria are met.
 
 Subdomain `decks.witchtilt.com` happens in the site buildout work block (Vercel project settings → Domains). Until then the tool lives at `witchtilt.com/decks` and works fine there.
+
+---
+
+## 11. Follow-ups for v0.2+
+
+Deferred from v0.1 by explicit decision; tracked here so they're not lost.
+
+- **Cost spread should derive from the deck's actual card costs, not just its rune colors.** Today the spread is built from the deck's rune-color composition (top 2 by count) + a fixed shape (`1/2/3`, `CC/1C/2C`, etc.). Smarter v0.2: parse each card's mana cost from the deck list and only display rows for costs that actually appear in this deck. Requires a card database (or at minimum a name→cost lookup) so we know what `Daring Poro` costs. Per §1 we explicitly don't have one yet — this is the largest unlock the tool is missing. Noted by user 2026-05-11.
+
+- **3+ color cost spread.** Today's top-2-by-count fallback (R/B/P/O/G/Y tie-break) silently drops the third+ color for tri-color decks. v0.2 should either show top-3 mixes or let the user pick which 2-3 colors they care about. Documented inline in `lib/cost-spread.ts`.
