@@ -13,9 +13,7 @@ Cross-references:
 
 This repo (renamed from `riftbound-runes` → `witchtilt-tools` on 2026-05-11) is **Rune Odds**, a hypergeometric probability calculator for the Riftbound TCG's 12-card rune deck. It's the first tool under the **WitchTilt** YouTube channel + tools umbrella. The channel covers Riftbound and broader card-game strategy with a debate-comedy voice; the tools exist partly for the channel's content and partly as standalone player utilities.
 
-Live at:
-- **https://www.witchtilt.com** — canonical, custom domain via Cloudflare Registrar (acquired 2026-05-09).
-- **https://riftbound-runes.vercel.app/** — stable Vercel fallback URL (Vercel project name predates the GitHub rename).
+Live at **https://www.witchtilt.com** — canonical, custom domain via Cloudflare Registrar (acquired 2026-05-09).
 
 Currently single-page. Site buildout to a landing → tools → individual-tool-pages structure (with the calculator moving to `runes.witchtilt.com`) is on the roadmap.
 

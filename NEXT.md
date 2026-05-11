@@ -4,7 +4,7 @@ This document describes what to build next and why. Drop into a fresh Claude Cod
 
 ## Project: Rune Odds — Riftbound TCG probability calculator
 
-- **Live**: https://riftbound-runes-ilbmlmv7b-alexbmillers-projects.vercel.app/
+- **Live**: https://www.witchtilt.com
 - **Stack**: Next.js 14 (App Router) + TypeScript + Tailwind, deployed on Vercel.
 - **Current version**: v0.1.1 (see CHANGELOG.md).
 - **Project owner**: Alex Miller — senior full-stack dev. Skip explanations of git, npm, Vercel, TypeScript basics, etc. Jump straight to the work.
