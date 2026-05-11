@@ -1,10 +1,52 @@
 # Changelog
 
-All notable changes to Rune Odds will be documented here. The goal is to be honest about what changed, what we got wrong, and why the math is what it is.
+All notable changes to `witchtilt-tools` will be documented here. Each tool versions independently (Rune Odds, Deck Pastebin, the landing page, etc.) — entries are listed chronologically with a tool prefix. The goal is to be honest about what changed, what we got wrong, and why the math is what it is.
 
 ---
 
-## [0.3.0] — 2026-05-11
+## [Deck Pastebin 0.1.0] — 2026-05-11
+
+### Added
+
+- **New tool, lives at `decks.witchtilt.com`** (and at `witchtilt.com/decks` via path). Paste a Riftbound decklist; the tool extracts the rune pool and renders the probability of casting representative costs by each turn. The substantive output is the mana-curve table.
+- **Decklist parser** that handles real-world Riftbound text exports: `<count> <card name>` per line, `<count> <Domain> Rune` for runes (Fury/Mind/Chaos/Body/Calm/Order), section headers (Main Deck, Sideboard, Runes, custom labels), multicolor rune pools, battlefield collector-code suffixes preserved verbatim, comments (`//` and `#`), duplicate-entry merging within a section. Format verified 2026-05-11 against Mobalytics tournament exports and Riot's official organized-play deck recaps.
+- **Mana-curve table** reusing `probabilityCanCast` from Rune Odds v0.3's math layer. The cost spread is **derived from the deck's actual rune colors** (top 2 by count, canonical R/B/P/O/G/Y tie-break), not a fixed list — mono-color decks get 6 rows, two-color decks get 12. Cost letters are tinted in their canonical color; cell shading reuses the existing gold-accent heat scale.
+- **Pre-fill example deck** (7 Mind + 5 Order Viktor list) when the textarea is empty, so the curve renders on first visit instead of a blank state. Textarea stays visually empty so users can paste without clearing.
+- **Turn-trim rule**: T6 is always dropped (entire 12-card rune deck is channeled by then; every row reads 100%). T5 is shown only when at least one row hasn't fully saturated by T4 (any cell < 99.95%, the same threshold `pct()` uses to round to 100%). Tightens the table on mobile without losing information.
+- **Share-text button** producing a Discord/X-pastable block (rune breakdown, going-first/second, P-by-turn for each cost). Rounded to whole percent for terseness; live table keeps 1-decimal precision.
+- **New lib modules + tests** — `lib/decklist-parser.ts`, `lib/cost-spread.ts`, `lib/share-text.ts`. Vitest suite grows from 59 to 105 tests. No changes to Rune Odds math.
+
+### Why the cost spread is derived, not fixed
+
+The original spec hardcoded `1, 2, 3, RR, BB, 1R, 1B, 2R, 2B, RB, 1RB, 2RR`. That's only Red and Blue — for any Yellow/Green/Body/Chaos deck, nine of the twelve rows would show perpetually 0%, making the table actively misleading. The derived shape keeps the same patterns but substitutes the deck's actual colors. Spec §4 was updated during build to record the decision.
+
+### What v0.1 explicitly does NOT do
+
+No card-database validation (we trust the user's list verbatim), no deck saving/sharing via URL, no edit-in-place, no card-image rendering, no deck-change suggestions, no mid-game pile inputs. Each is a v0.2+ candidate on its own.
+
+### v0.2 next-up
+
+The biggest unlock the tool is missing: cost spread should ultimately derive from the deck's **actual card costs** (not just its rune colors), which requires a name→cost lookup table. Tracked in `docs/SPEC_decks_v0.1.md` §11.
+
+---
+
+## [Landing 0.1.0] — 2026-05-11
+
+### Added
+
+- **Landing page at `witchtilt.com/`** — Hero (hex sigil + wordmark + tagline "Tools and arguments for trading card players"), tools grid (Rune Odds + Deck Pastebin live; Deck Builder / Pack EV / Draft Sim / Resolution Sequencer as coming-soon), about strip, footer with Riot fan-content disclaimer.
+- **WitchTilt brand wired up** — IM Fell English SC for the wordmark (loaded via `next/font/google`, self-hosted at build), near-black `#0a0b0d` background, muted gold `#d4af37` accent, monospace numerics, sharp corners. Mobile-first; no animations beyond CSS hover.
+- **Subdomain rewrites** in `next.config.js` so `runes.witchtilt.com` and `decks.witchtilt.com` serve their respective routes from the same deployment.
+- **Riot Developer Portal token** at `/riot.txt` for domain verification.
+- **Server-rendered**, zero client JS for the landing itself.
+
+### Not in v0.1
+
+No email capture, no analytics, no cookie banner, no blog, no animated hero, no `/about` page, no sidebar nav (deferred to v1+ when there are 5+ live tools). Social-link row is YouTube-only until the first video launches and TikTok/IG/X handles are confirmed.
+
+---
+
+## [Rune Odds 0.3.0] — 2026-05-11
 
 ### Added
 
@@ -52,7 +94,7 @@ In practice: a player with 2R already channeled who wants to cast 2RR should que
 
 ---
 
-## [0.2.0] — 2026-05-06
+## [Rune Odds 0.2.0] — 2026-05-06
 
 ### Added
 - **Mid-game mode** — a mode switcher (Deckbuilding / Mid-game) now sits above the controls. Mid-game mode models the actual in-game rune pile state rather than assuming a fresh deck.
@@ -89,7 +131,7 @@ The honest interface is: count the face-down runes, count the target color among
 
 ---
 
-## [0.1.1] — 2026-05-06
+## [Rune Odds 0.1.1] — 2026-05-06
 
 ### Added
 - Explicit note in the UI clarifying that the tool's odds assume no recycling has occurred, and that this calculator is for deckbuilding questions, not live mid-game decisions.
@@ -139,7 +181,7 @@ We'll show our work in v0.2.
 
 ---
 
-## [0.1.0] — 2026-05-06
+## [Rune Odds 0.1.0] — 2026-05-06
 
 ### Added
 - Initial release. Hypergeometric probability calculator for the 12-card Riftbound rune deck.
@@ -164,9 +206,17 @@ Does not yet model recycling (see v0.1.1 note above).
 
 ## Roadmap
 
-- **v0.3.x** — polish, edge cases users surface, mobile refinements.
-- **Site buildout** — landing page at root, calculator moves to its own subdomain (`runes.witchtilt.com`).
-- **Deck Builder** — separate tool, drag-and-drop card selection + deck validation + integrated Rune Odds inline.
-- Pack EV / Collection Tracker, Main Deck Probability Calculator, Resolution Order Sequencer, Draft Simulator — all queued.
+Shipped (2026-05-11):
+- ~~Rune Odds v0.3 — Card mode + multivariate hypergeom~~
+- ~~Site buildout — landing page at root, Rune Odds at `runes.witchtilt.com`, Deck Pastebin at `decks.witchtilt.com`~~
+- ~~Deck Pastebin v0.1 — paste a deck, see the mana curve~~
+
+Active queue:
+- **Deck Builder** — separate tool, drag-and-drop card selection + deck validation + integrated Rune Odds inline. The next standalone tool to start.
+- **Deck Pastebin v0.2** — cost spread derived from the deck's actual card costs (requires a card-database / name→cost lookup). See `docs/SPEC_decks_v0.1.md` §11.
+- **Polish** — edge cases users surface, mobile refinements, og-image generation, social handles once first video lands.
+
+Queued:
+- Pack EV / Collection Tracker, Main Deck Probability Calculator, Resolution Order Sequencer, Draft Simulator.
 
 If you spot something wrong with the math or have a feature request, the repo lives at [github.com/alexbmiller/witchtilt-tools](https://github.com/alexbmiller/witchtilt-tools).
