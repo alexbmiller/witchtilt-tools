@@ -5,14 +5,14 @@ const nextConfig = {
     return {
       beforeFiles: [
         {
-          source: '/:path*',
+          source: '/((?!_next/|favicon.ico|api/).*)',
           has: [{ type: 'host', value: 'runes.witchtilt.com' }],
-          destination: '/runes/:path*',
+          destination: '/runes/$1',
         },
         {
-          source: '/:path*',
+          source: '/((?!_next/|favicon.ico|api/).*)',
           has: [{ type: 'host', value: 'decks.witchtilt.com' }],
-          destination: '/decks/:path*',
+          destination: '/decks/$1',
         },
       ],
     };
