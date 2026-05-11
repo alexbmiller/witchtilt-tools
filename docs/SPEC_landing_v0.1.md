@@ -90,7 +90,7 @@ Between the tools grid and the footer, a single short paragraph that frames the 
 
 **Copy** (draft, to be reviewed):
 
-> WitchTilt is one person building tools and content for trading card games. The math is real. The takes are sharp. New tools ship when they're ready, not on a schedule. If you want to know when something new lands, [subscribe on YouTube](https://youtube.com/@witchtilt).
+> WitchTilt is one person building tools and content for trading card games. The math is real. The takes are genuine. New tools ship when they're ready, not on a schedule. If you want to know when something new lands, [subscribe on YouTube](https://youtube.com/@witchtilt).
 
 This block is intentionally small. ~50 words. One link, to YouTube.
 
@@ -268,7 +268,7 @@ Deferred from v0.1 by explicit decision. Track here so they don't get lost when 
 
 - **Social handle URLs.** Footer ships in v0.1 with the YouTube link only; TikTok, Instagram, and X links need to be added and verified before the first video launch. Channel HQ says the handle is `witchtilt` across all four platforms — confirm the exact URL pattern per service (`@witchtilt` vs `/witchtilt`) and wire into `app/components/landing/footer.tsx`.
 
-- **About-strip copy revisit.** §2.3 draft copy ships as written in v0.1 ("WitchTilt is one person building tools and content for trading card games. The math is real. The takes are sharp..."). Revisit once content cadence emerges — the "new tools ship when they're ready, not on a schedule" line anchors expectations and may want refining.
+- **About-strip copy revisit.** §2.3 draft copy ships as written in v0.1 ("WitchTilt is one person building tools and content for trading card games. The math is real. The takes are genuine..."). Revisit once content cadence emerges — the "new tools ship when they're ready, not on a schedule" line anchors expectations and may want refining.
 
 - **og-image.png.** Generate the 1200×630 social card and wire it into `metadata.openGraph.images` in `app/page.tsx`. Currently omitted entirely (rather than referencing a missing asset) to avoid broken-image icons on platforms that try to prefetch. Until this lands, links shared on Discord/X show no preview.
 

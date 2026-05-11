@@ -4,7 +4,7 @@ export default function AboutStrip() {
       <div className="mx-auto max-w-2xl">
         <p className="text-base leading-relaxed text-ink-200">
           WitchTilt is one person building tools and content for trading card games.
-          The math is real. The takes are sharp. New tools ship when they&rsquo;re ready,
+          The math is real. The takes are genuine. New tools ship when they&rsquo;re ready,
           not on a schedule. If you want to know when something new lands,{" "}
           <a
             href="https://youtube.com/@witchtilt"
