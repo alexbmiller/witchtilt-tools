@@ -96,20 +96,22 @@ This block is intentionally small. ~50 words. One link, to YouTube.
 
 ### 2.4 Footer
 
-Three lines, muted color, small text.
+Four lines, muted color, small text.
 
 - Line 1: Copyright + year + name. `© 2026 WitchTilt. Built by Alex Miller.`
-- Line 2: Social links inline. `YouTube · TikTok · Instagram · X` (each linked)
+- Line 2: `YouTube` (linked). TikTok / Instagram / X added once the first video launches and handles are confirmed.
 - Line 3: `Source on GitHub` link to the witchtilt-tools repo.
+- Line 4 (Riot fan content disclaimer, required per Riot's Legal Jibber Jabber Section 6, even smaller / more muted than the other lines):
+  > *WitchTilt was created under Riot Games' "Legal Jibber Jabber" policy using assets owned by Riot Games. Riot Games does not endorse or sponsor this project.*
 
-Keep it spare. No "navigation," no "company," no "legal." We don't have those things.
+Keep it spare. No "navigation," no "company," no "legal." We don't have those things — but the Riot disclaimer is non-negotiable for any tool referencing Riftbound's name or game terms.
 
 ---
 
 ## 3. Visual design constraints
 
 - **Color palette** (locked from Brand Kit): primary background `#0a0b0d`, primary text `#e8e6e0` (near-white), accent gold `#d4af37`, muted text `#888780`. Reuse the CSS variables that already exist in the witchtilt-tools styling.
-- **Typography**: DM Serif Display for the wordmark only. Inter (or system sans) for everything else. Sizes: hero tagline 18px, tool card titles 20px medium, body 16px, footer 13px.
+- **Typography**: IM Fell English SC for the wordmark only (loaded via `next/font/google`, self-hosted at build time). Inter (or system sans) for everything else. Sizes: hero tagline 18px, tool card titles 20px medium, body 16px, footer 13px.
 - **Spacing**: generous. Hero takes a full viewport height on desktop (`min-height: 80vh` is fine). Tools grid has at least 80px above and below.
 - **No images** other than the sigil SVG. No icons inside tool cards. Status badges are CSS, not icons.
 - **No animations beyond `transition` on hover states.** No scroll-triggered effects.
@@ -195,7 +197,7 @@ export const metadata = {
 - **The "Source on GitHub" link** should not appear until the LICENSE files are in place across repos. Pope to drop those before the landing page goes live. If the link points at a repo that's still licensed-by-default-which-is-all-rights-reserved, that's misleading. Easy fix: add LICENSE files first, then ship landing page.
 - **Live tool links use subdomain URLs** (`runes.witchtilt.com`, not `witchtilt.com/runes`). This assumes the subdomain rewrites are configured in Vercel before this page is publicly reachable. Order of operations enforces this — landing page ships AFTER cleanup block lands subdomains.
 - **Coming Soon cards should not be clickable.** Make sure CSS for "coming-soon" status removes hover lift and cursor change. Visually they're real cards, but tapping does nothing. Don't fake-link them to `#`.
-- **No external dependencies.** No analytics, no fonts loaded from Google Fonts (use locally hosted DM Serif Display in `/public/fonts/` if needed; or fall back to a system serif and add the custom font as a follow-up).
+- **No external dependencies at runtime.** No analytics, no runtime font fetches. IM Fell English SC is loaded via `next/font/google`, which downloads and self-hosts the font at build time — no Google Fonts request from the user's browser.
 
 ---
 
@@ -259,19 +261,3 @@ The landing page replaces `app/page.tsx` content but doesn't touch `/runes` (tha
 After merge: `witchtilt.com/` shows the landing page. `runes.witchtilt.com` continues to serve the calculator. `decks.witchtilt.com` 404s until the pastebin ships. That 404 is fine for the brief window; the Deck Pastebin card on the landing page should still link to it, accepting the short 404 window as the cost of shipping landing-then-pastebin instead of vice versa.
 
 (Alternative order: ship pastebin first, *then* landing page. This avoids the 404 window. But the landing page is simpler than the pastebin, so shipping landing first gives faster psychological momentum. Pope to decide. Both orders are defensible.)
-
----
-
-## 11. Follow-ups for v0.1.1
-
-Deferred from v0.1 by explicit decision. Track here so they don't get lost when v0.1 ships.
-
-- **Social handle URLs.** Footer ships in v0.1 with the YouTube link only; TikTok, Instagram, and X links need to be added and verified before the first video launch. Channel HQ says the handle is `witchtilt` across all four platforms — confirm the exact URL pattern per service (`@witchtilt` vs `/witchtilt`) and wire into `app/components/landing/footer.tsx`.
-
-- **About-strip copy revisit.** §2.3 draft copy ships as written in v0.1 ("WitchTilt is one person building tools and content for trading card games. The math is real. The takes are genuine..."). Revisit once content cadence emerges — the "new tools ship when they're ready, not on a schedule" line anchors expectations and may want refining.
-
-- **og-image.png.** Generate the 1200×630 social card and wire it into `metadata.openGraph.images` in `app/page.tsx`. Currently omitted entirely (rather than referencing a missing asset) to avoid broken-image icons on platforms that try to prefetch. Until this lands, links shared on Discord/X show no preview.
-
-- **Font choice was IM Fell English SC** (decided 2026-05-11), not DM Serif Display as originally specced in §3. Update §3 if the choice sticks past v0.1.1.
-
-- **Sidebar nav (deferred to v1+).** Considered 2026-05-11 as an alternative to the tools grid: collapsible sidebar that fans out to show selected-tool detail, routing unchanged. Held back because at 2 live tools + 4 coming-soon, the grid reads cleaner and a sidebar would feel oversized for the catalog. **Trigger to revisit: 5+ live tools.** At that scale the grid becomes a 3+ row block and a sidebar earns its keep.
