@@ -8,6 +8,7 @@ module.exports = {
     extend: {
       fontFamily: {
         mono: ["ui-monospace", "SFMono-Regular", "Menlo", "Monaco", "Consolas", "monospace"],
+        display: ["var(--font-display)", "Georgia", "serif"],
       },
       colors: {
         ink: {
