@@ -21,7 +21,7 @@ const DECK_SIZE = 12;
 // Memoize binomials for the small range we use (n, k both <= 12).
 const binomCache = new Map<string, bigint>();
 
-function binom(n: number, k: number): bigint {
+export function binom(n: number, k: number): bigint {
   if (k < 0 || k > n) return 0n;
   if (k === 0 || k === n) return 1n;
   const key = `${n},${k}`;
