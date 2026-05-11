@@ -23,6 +23,9 @@ export default function Footer() {
             Source on GitHub
           </a>
         </p>
+        <p className="mt-2 max-w-prose text-[11px] italic leading-relaxed text-ink-600">
+          WitchTilt was created under Riot Games&rsquo; &ldquo;Legal Jibber Jabber&rdquo; policy using assets owned by Riot Games. Riot Games does not endorse or sponsor this project.
+        </p>
       </div>
     </footer>
   );
