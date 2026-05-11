@@ -4,11 +4,9 @@ import { Suspense } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import RuneMode from "./components/rune-mode";
 import CardMode from "./components/card-mode";
+import { ACTIVE_BTN, INACTIVE_BTN } from "./components/shared";
 
 type Mode = "card" | "rune";
-
-const ACTIVE_BTN = "border-accent bg-accent/10 text-accent";
-const INACTIVE_BTN = "border-ink-700 text-ink-300 hover:border-ink-600 hover:text-ink-100";
 
 function Page() {
   const searchParams = useSearchParams();
