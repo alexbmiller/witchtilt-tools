@@ -371,10 +371,8 @@ export default function CardMode() {
         <section className="mb-6 rounded-sm border border-ink-700 bg-ink-900/40 p-4">
           <p className="font-mono text-xs leading-relaxed text-ink-400">
             <span className="text-accent">Mid-game note:</span> these odds count only{" "}
-            <span className="text-ink-200">future draws from the unknown pile</span>. Already-
-            channeled runes pay generic mana but conservatively don&apos;t contribute color
-            requirements — if your existing pool already covers part of the cost, subtract it
-            from the cost string before querying.
+            <span className="text-ink-200">future draws from the pile</span>. If runes already
+            in your pool cover part of the cost, subtract from the cost first.
           </p>
         </section>
       )}
