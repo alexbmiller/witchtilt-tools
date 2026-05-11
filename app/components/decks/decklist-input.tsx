@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { COLORS, type Color } from "@/lib/cost-parser";
 import { parseDecklist, type ParsedDeck } from "@/lib/decklist-parser";
+import ManaCurveTable from "./mana-curve-table";
 
 const EXAMPLE_PLACEHOLDER = `Paste your decklist here. Format:
 
@@ -82,7 +83,10 @@ export default function DecklistInput() {
       )}
 
       {hasInput && !foundNothing && (
-        <ParsedSummary parsed={parsed} />
+        <>
+          <ParsedSummary parsed={parsed} />
+          <ManaCurveTable runes={parsed.runes} />
+        </>
       )}
     </div>
   );
