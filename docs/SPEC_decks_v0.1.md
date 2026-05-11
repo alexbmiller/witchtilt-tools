@@ -59,11 +59,13 @@ Riftbound community uses a standard text format. Examples from public sources:
 12 Order Rune
 ```
 
-**Format**: each line is `<count> <card name>`. Whitespace-tolerant. Empty lines and comment lines (`//` or `#`) ignored.
+**Format** (verified 2026-05-11 against Mobalytics tournament deck exports and Riot's official organized-play deck recaps): each line is `<count> <card name>`. Whitespace-tolerant. Empty lines and comment lines (`//` or `#`) ignored.
 
-**Rune lines** are special — they end in the word `Rune` preceded by a domain word (`Order`, `Fury`, `Mind`, `Chaos`, `Body`, `Calm`). The parser identifies these as runes, not playable cards, and counts them toward the rune deck composition.
+**Rune lines** are special — they end in the word `Rune` preceded by a domain word (`Order`, `Fury`, `Mind`, `Chaos`, `Body`, `Calm`). The parser identifies these as runes, not playable cards, and counts them toward the rune deck composition. **Rune pools may be multicolor** (e.g., `7 Mind Rune` + `5 Order Rune` is a real, tournament-legal split) — sum across colors and warn only if the total isn't 12.
 
-**Verify before commit**: confirm the canonical decklist format from official Riftbound sources or major community tools. If there's a more current convention (a specific export from a deck-building site, etc.), match that. Don't invent a format that conflicts with what players use.
+**Section headers**: real-world exports may include `Main Deck`, `Sideboard`, `Runes`, etc. as section labels (sometimes followed by `:` or a count). The parser recognises these and tracks which section each entry belongs to. Sideboard cards are parsed and surfaced informationally but never folded into the mana-curve math (the curve only ever reads the rune pool, so sideboards don't change probabilities). Unknown section labels are tolerated — they just become the label for any cards listed under them.
+
+**Battlefield cards** sometimes carry a collector-code suffix in parens, e.g., `Obelisk of Power (284)`. We don't validate against any card database, so the full literal name (parens and all) is preserved. No special handling.
 
 ---
 
@@ -71,21 +73,24 @@ Riftbound community uses a standard text format. Examples from public sources:
 
 ```typescript
 interface ParsedDeck {
-  mainDeck: DeckEntry[];  // count + card name (the playable cards)
-  runeDeck: RuneCounts;   // counts by color, sums to ≤ 12
-  totalMainDeck: number;
-  totalRuneDeck: number;
-  warnings: string[];     // e.g., "rune deck has only 10 runes", "duplicate entry"
+  cards: DeckEntry[];     // all parsed non-rune entries, with section labels
+  runes: RuneCounts;      // counts by color, sum may differ from 12 (warning issued)
+  totalCards: number;     // sum of counts across all sections
+  totalRunes: number;     // sum across colors
+  warnings: string[];     // e.g., "rune pool has 10 runes", "duplicate entry"
   errors: string[];       // e.g., "couldn't parse line N"
 }
 
 interface DeckEntry {
   count: number;
   name: string;
+  section: string;        // "Main Deck" (default), "Sideboard", or any custom header
 }
 
 type RuneCounts = Record<Color, number>;  // R/B/P/O/G/Y from cost-parser
 ```
+
+Note: original spec named these `mainDeck` / `runeDeck`. Renamed during build to `cards` / `runes` because sideboards (and any other section labels) live in the same `cards` array tagged by `section` — `mainDeck` would be a misnomer.
 
 **Domain-to-color mapping** for rune lines:
 - `Fury Rune` → R
@@ -108,11 +113,12 @@ Given a parsed deck, the page renders:
 - Total rune count + warning if not exactly 12
 
 ### Mana curve (the main output)
-- A table or visualization showing P(can cast) by turn for **a representative spread of costs**
-- v0.1 fixed cost list: `1`, `2`, `3`, `RR`, `BB`, `1R`, `1B`, `2R`, `2B`, `RB`, `1RB`, `2RR`
-- Hardcoded to be useful for the most common Riftbound mana-cost patterns; v0.2 will let users specify their actual deck's costs
+- A table showing P(can cast) by turn for **a representative spread of costs, derived from the deck's actual rune colors**
+- Cost-spread shape (decided 2026-05-11, derived-from-colors approach): `1`, `2`, `3`, then one- and two-color variants of the shape `CC`, `1C`, `2C` per color present in the deck (and `CD`, `1CD`, `2CC` for any two-color combinations present). Mono-color decks see ~6 colored rows; two-color decks see ~12. v0.2 will let users specify their actual deck's costs directly.
 - Each row = a cost, each column = a turn (T1–T6), cell shows probability
 - Going first / going second toggle (same as Rune Odds)
+
+Rationale: hardcoding R/B-only costs (the original v0.1 plan) makes the tool actively misleading for non-R/B decks (every color row would show `0%`). Deriving the spread from the pasted deck's runes keeps the table small and meaningful for any color composition without scope-creeping into user-customizable costs.
 
 ### Main deck list (informational)
 - Just renders the parsed playable cards as a list with counts
@@ -123,19 +129,27 @@ Given a parsed deck, the page renders:
 
 ## 5. Code architecture
 
+As shipped:
+
 ```
 lib/
-├── decklist-parser.ts    (new — parse pasted text → ParsedDeck)
+├── decklist-parser.ts    (parse pasted text → ParsedDeck)
+├── cost-spread.ts        (decide which costs to display from the deck's rune colors)
+├── share-text.ts         (build the copy-shareable mana-curve text block)
 └── (existing math layer from v0.3 unchanged, reused)
 
 app/
 ├── decks/
-│   └── page.tsx          (new route — the deck pastebin page)
-└── components/
-    ├── decklist-input.tsx    (textarea with paste, live validation)
-    ├── rune-breakdown.tsx    (visual color breakdown of rune deck)
-    └── mana-curve-table.tsx  (the by-turn cost probability table)
+│   └── page.tsx          (route — server component, header + Footer)
+└── components/decks/
+    ├── decklist-input.tsx    (client — textarea, warnings/errors, parsed summary)
+    └── mana-curve-table.tsx  (client — derived cost rows, P-by-turn, share button)
 ```
+
+Spec deltas from build:
+- Components live in `app/components/decks/` (subdirectory) for consistency with the landing buildout's `app/components/landing/` pattern. Original spec had them flat in `app/components/`.
+- The standalone `rune-breakdown.tsx` was folded into `decklist-input.tsx`'s `ParsedSummary` (small enough to not warrant its own file in v0.1; extract if it grows).
+- `lib/cost-spread.ts` and `lib/share-text.ts` are new pure modules added during build, both with vitest coverage.
 
 ### Reuse, don't duplicate
 
