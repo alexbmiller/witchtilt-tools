@@ -129,19 +129,27 @@ Rationale: hardcoding R/B-only costs (the original v0.1 plan) makes the tool act
 
 ## 5. Code architecture
 
+As shipped:
+
 ```
 lib/
-├── decklist-parser.ts    (new — parse pasted text → ParsedDeck)
+├── decklist-parser.ts    (parse pasted text → ParsedDeck)
+├── cost-spread.ts        (decide which costs to display from the deck's rune colors)
+├── share-text.ts         (build the copy-shareable mana-curve text block)
 └── (existing math layer from v0.3 unchanged, reused)
 
 app/
 ├── decks/
-│   └── page.tsx          (new route — the deck pastebin page)
-└── components/
-    ├── decklist-input.tsx    (textarea with paste, live validation)
-    ├── rune-breakdown.tsx    (visual color breakdown of rune deck)
-    └── mana-curve-table.tsx  (the by-turn cost probability table)
+│   └── page.tsx          (route — server component, header + Footer)
+└── components/decks/
+    ├── decklist-input.tsx    (client — textarea, warnings/errors, parsed summary)
+    └── mana-curve-table.tsx  (client — derived cost rows, P-by-turn, share button)
 ```
+
+Spec deltas from build:
+- Components live in `app/components/decks/` (subdirectory) for consistency with the landing buildout's `app/components/landing/` pattern. Original spec had them flat in `app/components/`.
+- The standalone `rune-breakdown.tsx` was folded into `decklist-input.tsx`'s `ParsedSummary` (small enough to not warrant its own file in v0.1; extract if it grows).
+- `lib/cost-spread.ts` and `lib/share-text.ts` are new pure modules added during build, both with vitest coverage.
 
 ### Reuse, don't duplicate
 

@@ -5,6 +5,7 @@ import { parseCost, type Color } from "@/lib/cost-parser";
 import { probabilityCanCast } from "@/lib/card-mode";
 import { type RuneCounts } from "@/lib/decklist-parser";
 import { generateCostSpread } from "@/lib/cost-spread";
+import { buildShareText } from "@/lib/share-text";
 import { ACTIVE_BTN, INACTIVE_BTN, heatColor, pct } from "../shared";
 
 const TURNS = [1, 2, 3, 4, 5, 6] as const;
@@ -38,6 +39,7 @@ function CostLabel({ cost }: { cost: string }) {
 
 export default function ManaCurveTable({ runes }: { runes: RuneCounts }) {
   const [goingFirst, setGoingFirst] = useState(true);
+  const [justCopied, setJustCopied] = useState(false);
 
   const costs = useMemo(() => generateCostSpread(runes), [runes]);
 
@@ -50,6 +52,18 @@ export default function ManaCurveTable({ runes }: { runes: RuneCounts }) {
   }, [costs, runes, goingFirst]);
 
   const onlyGeneric = costs.length === 3;
+
+  async function handleCopy() {
+    const text = buildShareText({ runes, costs, matrix, turns: TURNS, goingFirst });
+    try {
+      await navigator.clipboard.writeText(text);
+      setJustCopied(true);
+      setTimeout(() => setJustCopied(false), 2000);
+    } catch {
+      // Clipboard API can fail on insecure contexts or denied permissions.
+      // Fall back to nothing — user can manually select the text if needed.
+    }
+  }
 
   return (
     <section className="space-y-4">
@@ -113,18 +127,26 @@ export default function ManaCurveTable({ runes }: { runes: RuneCounts }) {
         </table>
       </div>
 
-      <p className="font-mono text-xs text-ink-500">
-        {onlyGeneric ? (
-          <>
-            No rune colors detected — only generic costs shown. Add rune lines like{" "}
-            <span className="text-accent">12 Order Rune</span> to see colored cost rows.
-          </>
-        ) : (
-          <>
-            Cost rows derived from your deck&rsquo;s rune colors. Cell shading scales with probability.
-          </>
-        )}
-      </p>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <p className="font-mono text-xs text-ink-500">
+          {onlyGeneric ? (
+            <>
+              No rune colors detected — only generic costs shown. Add rune lines like{" "}
+              <span className="text-accent">12 Order Rune</span> to see colored cost rows.
+            </>
+          ) : (
+            <>
+              Cost rows derived from your deck&rsquo;s rune colors. Cell shading scales with probability.
+            </>
+          )}
+        </p>
+        <button
+          onClick={handleCopy}
+          className="rounded-sm border border-ink-700 bg-ink-900 px-3 py-1.5 font-mono text-xs text-ink-200 transition hover:border-accent hover:text-accent"
+        >
+          {justCopied ? "Copied" : "Copy share text"}
+        </button>
+      </div>
     </section>
   );
 }

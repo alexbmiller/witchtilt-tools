@@ -98,45 +98,79 @@ function ParsedSummary({ parsed }: { parsed: ParsedDeck }) {
     sectionCounts.set(card.section, (sectionCounts.get(card.section) ?? 0) + card.count);
   }
 
+  const cardsBySection = new Map<string, ParsedDeck["cards"]>();
+  for (const card of parsed.cards) {
+    const list = cardsBySection.get(card.section) ?? [];
+    list.push(card);
+    cardsBySection.set(card.section, list);
+  }
+
   return (
-    <div className="grid gap-4 rounded-sm border border-ink-700 px-4 py-3 sm:grid-cols-2">
-      <div>
-        <div className="mb-1 font-mono text-xs uppercase tracking-wider text-ink-400">
-          Parsed cards
+    <div className="space-y-3 rounded-sm border border-ink-700 px-4 py-3">
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div>
+          <div className="mb-1 font-mono text-xs uppercase tracking-wider text-ink-400">
+            Parsed cards
+          </div>
+          {sectionCounts.size === 0 ? (
+            <p className="font-mono text-sm text-ink-500">none</p>
+          ) : (
+            <ul className="space-y-0.5 font-mono text-sm text-ink-200">
+              {Array.from(sectionCounts.entries()).map(([section, count]) => (
+                <li key={section} className="flex justify-between gap-4">
+                  <span className="text-ink-300">{section}</span>
+                  <span>{count}</span>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
-        {sectionCounts.size === 0 ? (
-          <p className="font-mono text-sm text-ink-500">none</p>
-        ) : (
-          <ul className="space-y-0.5 font-mono text-sm text-ink-200">
-            {Array.from(sectionCounts.entries()).map(([section, count]) => (
-              <li key={section} className="flex justify-between gap-4">
-                <span className="text-ink-300">{section}</span>
-                <span>{count}</span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-      <div>
-        <div className="mb-1 font-mono text-xs uppercase tracking-wider text-ink-400">
-          Rune pool ({parsed.totalRunes})
+        <div>
+          <div className="mb-1 font-mono text-xs uppercase tracking-wider text-ink-400">
+            Rune pool ({parsed.totalRunes})
+          </div>
+          {parsed.totalRunes === 0 ? (
+            <p className="font-mono text-sm text-ink-500">none</p>
+          ) : (
+            <ul className="space-y-0.5 font-mono text-sm text-ink-200">
+              {COLORS.filter((c) => parsed.runes[c] > 0).map((c) => (
+                <li key={c} className="flex items-center justify-between gap-4">
+                  <span className="flex items-center gap-2">
+                    <span className={`inline-block h-2 w-2 rounded-sm ${COLOR_SWATCH[c]}`} />
+                    <span className="text-ink-300">{COLOR_LABELS[c]}</span>
+                  </span>
+                  <span>{parsed.runes[c]}</span>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
-        {parsed.totalRunes === 0 ? (
-          <p className="font-mono text-sm text-ink-500">none</p>
-        ) : (
-          <ul className="space-y-0.5 font-mono text-sm text-ink-200">
-            {COLORS.filter((c) => parsed.runes[c] > 0).map((c) => (
-              <li key={c} className="flex items-center justify-between gap-4">
-                <span className="flex items-center gap-2">
-                  <span className={`inline-block h-2 w-2 rounded-sm ${COLOR_SWATCH[c]}`} />
-                  <span className="text-ink-300">{COLOR_LABELS[c]}</span>
-                </span>
-                <span>{parsed.runes[c]}</span>
-              </li>
-            ))}
-          </ul>
-        )}
       </div>
+
+      {parsed.cards.length > 0 && (
+        <details className="border-t border-ink-800 pt-2">
+          <summary className="cursor-pointer font-mono text-xs uppercase tracking-wider text-ink-400 hover:text-ink-200">
+            View parsed cards ({parsed.totalCards})
+          </summary>
+          <div className="mt-2 space-y-3">
+            {Array.from(cardsBySection.entries()).map(([section, list]) => (
+              <div key={section}>
+                <div className="mb-1 font-mono text-[10px] uppercase tracking-wider text-ink-500">
+                  {section}
+                </div>
+                <ul className="space-y-0.5 font-mono text-sm text-ink-300">
+                  {list.map((card, i) => (
+                    <li key={`${section}-${i}`} className="flex gap-3">
+                      <span className="w-8 text-right text-ink-500">{card.count}×</span>
+                      <span>{card.name}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </details>
+      )}
     </div>
   );
 }
