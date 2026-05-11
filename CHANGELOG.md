@@ -4,6 +4,54 @@ All notable changes to Rune Odds will be documented here. The goal is to be hone
 
 ---
 
+## [0.3.0] — 2026-05-11
+
+### Added
+
+- **Card mode** — new top-level mode toggle (Card mode default, Rune mode behind the switch). Type a card cost like `2RR`, configure your deck's color split, see the probability you can actually pay it by turn N. Generic + colored costs, multi-color AND queries.
+- **Multivariate hypergeometric model** for multi-color queries. The deck partitions into the colors you specify plus an implicit "rest" group; we sum the PMF over every hand composition that satisfies the required minima. Single-color queries reduce exactly to the v0.2 univariate hypergeom — verified by a regression battery across deck size, sample size, and threshold.
+- **Cost grammar** — `<generic digits><color letters>`, single-letter codes R/B/P/O/G/Y (Red/Blue/Purple/Orange/Green/Yellow → Fury/Mind/Chaos/Body/Calm/Order). Whitespace tolerated, case-insensitive. Example: `2RR` parses to generic=2, R:2, total=4.
+- **Smart deck-composition presets** — 6-6, 4-4-4, 8-4, 6-3-3. Clicking a preset preserves any colors you've already filled in and pads the rest alphabetically.
+- **Mid-game support inside Card mode** — same sub-mode pattern as Rune mode. Sample shifts to the unknown pile, with the boundary-crossing flag carried over.
+- **Info popover** in the header — short hypergeometric explainer that applies to both modes.
+- **Test suite** — Vitest, 59 tests covering parser, multivariate math, and the canCast wrappers. `npm test` to run.
+
+### Changed
+
+- **Repo renamed** from `riftbound-runes` to `witchtilt-tools` on GitHub (canonical home for the WitchTilt content + tools umbrella). Production URL unchanged: https://www.witchtilt.com.
+- **`app/page.tsx` refactored** into per-mode components under `app/components/`. Rune mode is the verbatim v0.2 UI relocated — no behavior change. Cross-component styling and number-format helpers live in `app/components/shared.ts`.
+- **Slider helper** in Rune-mode deckbuilding rewritten to call out the 12-card assumption explicitly: "Your rune deck is 12 cards total. Set how many of one color you're running; the remaining 12 − N are other colors."
+- **Share-text URL** updated to `via witchtilt.com` in both modes (was `runeodds.app`, the pre-Cloudflare working name).
+- **Version badge** in the header bumped to v0.3.
+
+### Math model — Card mode
+
+Multivariate hypergeometric PMF over a partitioned deck:
+
+```
+P(X_1=k_1, ..., X_m=k_m) = [Π C(K_i, k_i)] / C(N, n)
+```
+
+Where N = deck size, K_i = count of color i in deck, n = sample size, k_i = drawn of color i.
+
+For "can I cast cost X by turn T?", sum over all valid (k_c) tuples — each k_c ≥ r_c for required colors, running sum ≤ n. Non-required colors collapse into a single "rest" group for efficiency (skips enumerating combinations that don't affect the answer).
+
+**Generic mana** is handled at the wrapper layer as a pure hand-size check: if cumulative channels by turn T < total cost, P = 0. Otherwise the multivariate result is the answer — any remaining cards in the channeled set cover the generic portion.
+
+### Why a new mode instead of replacing Rune mode
+
+Rune mode answers "how many of one color will I see by turn N?" — useful for deckbuilding intuition about a single color's reliability ("am I running enough Reds?"). Card mode answers "can I cast this specific cost?" — useful when you have a real card in hand and want to know when you can play it.
+
+The honest reason we kept both: Rune mode's framing is faster for the common case where you only care about one color, and we didn't want to force a richer input model onto users who don't need it.
+
+### Mid-game in Card mode is conservative on color
+
+Mid-game Card mode samples only from the unknown pile. Already-channeled runes count toward generic mana (they're in your pool, they pay it), but **conservatively don't contribute color** — if your existing pool already covers part of the cost, subtract it from the cost string before querying.
+
+In practice: a player with 2R already channeled who wants to cast 2RR should query the math as if the cost were `2` (just generic, since the colored part is paid). We could have asked for explicit pool composition as a second input set; doubling the input surface for a mode that's already finicky felt worse than the slightly conservative bound.
+
+---
+
 ## [0.2.0] — 2026-05-06
 
 ### Added
@@ -116,7 +164,9 @@ Does not yet model recycling (see v0.1.1 note above).
 
 ## Roadmap
 
-- **v0.3** — multi-color queries. "What are my odds of having ≥1 Red AND ≥1 Blue by turn 2?"
-- **v0.4** — domain requirements for specific cards (e.g., "P(I can cast a 2RR card on T4)").
+- **v0.3.x** — polish, edge cases users surface, mobile refinements.
+- **Site buildout** — landing page at root, calculator moves to its own subdomain (`runes.witchtilt.com`).
+- **Deck Builder** — separate tool, drag-and-drop card selection + deck validation + integrated Rune Odds inline.
+- Pack EV / Collection Tracker, Main Deck Probability Calculator, Resolution Order Sequencer, Draft Simulator — all queued.
 
-If you spot something wrong with the math or have a feature request, the repo lives at [github.com/alexbmiller/riftbound-runes](https://github.com/alexbmiller/riftbound-runes).
+If you spot something wrong with the math or have a feature request, the repo lives at [github.com/alexbmiller/witchtilt-tools](https://github.com/alexbmiller/witchtilt-tools).
