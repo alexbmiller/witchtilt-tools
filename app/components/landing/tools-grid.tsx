@@ -9,13 +9,6 @@ const TOOLS: Tool[] = [
     href: "https://runes.witchtilt.com",
   },
   {
-    title: "Deck Pastebin",
-    description: "Paste your decklist. See your mana curve.",
-    detail: "Real decks, real probabilities.",
-    status: "live",
-    href: "https://decks.witchtilt.com",
-  },
-  {
     title: "Deck Builder",
     description: "Build decks with live odds as you go.",
     status: "coming-soon",
