@@ -6,17 +6,18 @@ Source for **WitchTilt**, a small set of tools for the **Riftbound: League of Le
 
 ## What's here
 
-- **Rune Odds** (live) — hypergeometric probability calculator for the 12-card Riftbound rune deck. Two modes:
+- **Rune Odds** (live at [runes.witchtilt.com](https://runes.witchtilt.com)) — hypergeometric probability calculator for the 12-card Riftbound rune deck. Two modes:
   - **Card mode**: type a card cost like `2RR`, see your odds of paying it by turn N. Multivariate hypergeometric over your deck's color split.
   - **Rune mode**: simpler "≥k of one color by turn N" queries. Useful for deckbuilding intuition about a single color.
   - Each mode has **Deckbuilding** (fresh deck) and **Mid-game** (recycling-aware) sub-modes.
-- More tools queued — Deck Pastebin, Pack EV, Resolution Order Sequencer, Draft Simulator. See [`CLAUDE.md`](./CLAUDE.md) for the roadmap.
+- **Deck Pastebin** (live at [decks.witchtilt.com](https://decks.witchtilt.com)) — paste a Riftbound decklist; the tool extracts the rune pool and renders the probability of casting representative costs by turn. Being folded into Rune Odds as a third mode (in progress).
+- More tools queued — Deck Builder (gated on Riot Developer API key), Pack EV, Resolution Order Sequencer, Draft Simulator. See [`CLAUDE.md`](./CLAUDE.md) for the roadmap.
 
 ## Stack
 
 - Next.js 14 (App Router) + TypeScript
 - Tailwind CSS
-- Vitest for the math layer (59 tests as of v0.3)
+- Vitest for the math layer (105 tests as of Deck Pastebin v0.1)
 - Deployed on Vercel, auto-deploys on push to `main`
 
 ## Run locally

@@ -11,11 +11,16 @@ Cross-references:
 
 ## Project overview
 
-This repo (renamed from `riftbound-runes` → `witchtilt-tools` on 2026-05-11) is **Rune Odds**, a hypergeometric probability calculator for the Riftbound TCG's 12-card rune deck. It's the first tool under the **WitchTilt** YouTube channel + tools umbrella. The channel covers Riftbound and broader card-game strategy with a debate-comedy voice; the tools exist partly for the channel's content and partly as standalone player utilities.
+This repo (renamed from `riftbound-runes` → `witchtilt-tools` on 2026-05-11) hosts the **WitchTilt** site and its tools — a Riftbound TCG (and eventually broader card-game) toolset paired with a YouTube channel that covers strategy with a debate-comedy voice. The tools exist partly for the channel's content and partly as standalone player utilities.
 
-Live at **https://www.witchtilt.com** — canonical, custom domain via Cloudflare Registrar (acquired 2026-05-09).
+Live (as of 2026-05-11):
+- **Landing**: https://www.witchtilt.com — hero + tools grid + about strip
+- **Rune Odds**: https://runes.witchtilt.com (path: `/runes`) — hypergeometric probability calculator for the 12-card rune deck
+- **Deck Pastebin**: https://decks.witchtilt.com (path: `/decks`) — paste a decklist, see the mana curve
 
-Currently single-page. Site buildout to a landing → tools → individual-tool-pages structure (with the calculator moving to `runes.witchtilt.com`) is on the roadmap.
+All three serve from a single Vercel deployment via subdomain rewrites in `next.config.js`. Custom domain via Cloudflare Registrar (acquired 2026-05-09).
+
+**Active strategic shift (2026-05-13)**: the Deck Pastebin is being merged into Rune Odds as a third mode. `decks.witchtilt.com` is being held back for the future Deck Builder, which is gated on Riot Developer API key approval. Work in flight on branch `runes-unified-tool` — after it ships, `/decks` becomes a coming-soon placeholder. Apparent contradictions with this should be flagged rather than silently overridden; strategic decisions originate in the Croupier chat (Claude Desktop), not in this repo.
 
 ---
 
@@ -90,32 +95,41 @@ Summed over all (k_c) where k_c ≥ r_c for required colors. Non-required colors
 ```
 witchtilt-tools/
 ├── app/                          # Next.js App Router
-│   ├── page.tsx                  # Shell: header, mode toggle (URL-synced), footer
-│   ├── layout.tsx                # Root layout
+│   ├── page.tsx                  # Landing route (hero + tools grid + about + footer)
+│   ├── layout.tsx                # Root layout + persistent SiteHeader (wordmark + nav)
 │   ├── globals.css               # Tailwind directives + global styles
+│   ├── runes/
+│   │   └── page.tsx              # Rune Odds — mode toggle (URL-synced), Card/Rune bodies
+│   ├── decks/
+│   │   └── page.tsx              # Deck Pastebin — paste input + mana curve
 │   └── components/
-│       ├── card-mode.tsx         # Card mode body (v0.3): cost input, deck/pile, table
-│       ├── rune-mode.tsx         # Rune mode body (v0.2 verbatim)
+│       ├── card-mode.tsx         # Rune Odds: Card mode body (v0.3): cost input, deck/pile, table
+│       ├── rune-mode.tsx         # Rune Odds: Rune mode body (v0.2 verbatim)
 │       ├── info-popover.tsx      # Header info popover (lucide Info icon)
-│       └── shared.ts             # ACTIVE_BTN / INACTIVE_BTN / pct / heatColor
+│       ├── shared.ts             # ACTIVE_BTN / INACTIVE_BTN / pct / heatColor
+│       ├── landing/              # Hero, ToolsGrid, ToolCard, AboutStrip, Footer
+│       └── decks/                # DecklistInput, ManaCurveTable
 ├── lib/
 │   ├── probability.ts            # v0.2 univariate hypergeom + mid-game pile math + binom (exported)
 │   ├── cost-parser.ts            # Card cost grammar (Color types, parseCost)
 │   ├── multivariate.ts           # multivariateHypergeom over named colors
 │   ├── card-mode.ts              # probabilityCanCast + probabilityCanCastMidGame wrappers
-│   └── __tests__/                # Vitest suite (59 tests as of v0.3)
+│   ├── decklist-parser.ts        # Pastebin: text → ParsedDeck (cards + runes + warnings)
+│   ├── cost-spread.ts            # Pastebin: pick representative costs from rune-color composition
+│   ├── share-text.ts             # Pastebin: build copy-shareable mana-curve text block
+│   └── __tests__/                # Vitest suite (105 tests as of Deck Pastebin v0.1)
 ├── docs/
-│   └── SPEC_v0.3.md              # v0.3 architecture spec (frozen 2026-05-11)
+│   ├── SPEC_v0.3.md              # Rune Odds v0.3 architecture spec (frozen 2026-05-11)
+│   └── SPEC_decks_v0.1.md        # Deck Pastebin v0.1 spec (ARCHIVED 2026-05-13; superseded by unification)
 ├── tailwind.config.js            # ink-* scale + accent (muted gold #d4af37)
-├── next.config.js
+├── next.config.js                # Subdomain rewrites (runes.* / decks.* → /runes /decks)
 ├── tsconfig.json
 ├── package.json
 ├── CHANGELOG.md
-├── NEXT.md                       # Cross-session handoff notes
 └── README.md
 ```
 
-Page layout is a thin shell. Mode-specific UI lives in its own component file. `shared.ts` holds cross-component style constants and number-formatting helpers — extend it rather than re-duplicating them in new components.
+Page layout is a thin shell. The root layout (`app/layout.tsx`) renders a persistent `SiteHeader` above every route. Mode-specific UI lives in its own component file. `shared.ts` holds cross-component style constants and number-formatting helpers — extend it rather than re-duplicating them in new components.
 
 ---
 
@@ -124,7 +138,7 @@ Page layout is a thin shell. Mode-specific UI lives in its own component file. `
 ```bash
 npm install
 npm run dev          # http://localhost:3000
-npm test             # 59 vitest tests, one-shot
+npm test             # 105 vitest tests, one-shot
 ```
 
 Other scripts:
@@ -162,11 +176,12 @@ Confident, slightly nerdy, slightly funny. Comedy-debate energy. Not corporate, 
 
 ## Roadmap (active queue; see Tool Roadmap in Notion for the full list)
 
-1. **v0.3 (shipped)** — Card mode with multi-color AND queries, multivariate hypergeom, Card-mode mid-game support, info popover, Vitest suite, repo rename.
-2. **v0.3.x** — polish + bugfixes as users surface them.
-3. **Site buildout** — landing page at root, calculator moves to `runes.witchtilt.com`, "tools" nav for future additions.
-4. **Deck Builder** — separate tool, drag-and-drop card selection + deck validation + integrated Rune Odds inline.
-5. Pack EV / Collection Tracker, Main Deck Probability Calculator, Resolution Order Sequencer, Draft Simulator — all queued.
+1. **Rune Odds v0.3 (shipped 2026-05-11)** — Card mode with multi-color AND queries, multivariate hypergeom, Card-mode mid-game support, info popover, Vitest suite, repo rename.
+2. **Site buildout (shipped 2026-05-11)** — landing page at `/`, Rune Odds at `runes.witchtilt.com`, Deck Pastebin at `decks.witchtilt.com`, subdomain rewrites in `next.config.js`.
+3. **Deck Pastebin v0.1 (shipped 2026-05-11)** — paste a decklist → mana curve via the existing math layer.
+4. **Rune Odds v0.4 (in progress, branch `runes-unified-tool`)** — merge Deck Pastebin into Rune Odds as a third mode; `/decks` becomes a coming-soon placeholder; `decks.witchtilt.com` reserved for the future Deck Builder.
+5. **Deck Builder** — separate tool, drag-and-drop card selection + deck validation + integrated Rune Odds inline. Gated on Riot Developer API key approval.
+6. Pack EV / Collection Tracker, Main Deck Probability Calculator, Resolution Order Sequencer, Draft Simulator — all queued.
 
 ---
 

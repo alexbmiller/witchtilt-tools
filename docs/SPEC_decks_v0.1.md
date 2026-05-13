@@ -1,5 +1,13 @@
 # Deck Pastebin v0.1 — Architecture Spec
 
+> **STATUS: ARCHIVED 2026-05-13.** This spec was implemented and shipped as Deck Pastebin v0.1 on 2026-05-11. The strategic decision on 2026-05-13 retired the standalone-tool framing: the pastebin functionality is being merged into Rune Odds as a third mode (Rune Odds v0.4, in progress on branch `runes-unified-tool`). The `decks.witchtilt.com` subdomain is being held back for the future Deck Builder, which is gated on Riot Developer API key approval.
+>
+> The architecture and parser details below remain accurate for the implementation that lives in `lib/decklist-parser.ts`, `lib/cost-spread.ts`, `lib/share-text.ts`, `app/components/decks/`, and `app/decks/page.tsx`. After v0.4 ships, that code will continue to back the new Rune Odds "Deck" mode rather than its own page; the `/decks` route becomes a coming-soon placeholder for the future Deck Builder.
+>
+> Read this document as historical context for how the pastebin was scoped — not as active spec.
+
+---
+
 **Scope**: A single page where a user pastes a Riftbound decklist and sees the mana curve / rune odds for that specific deck. No save, no edit, no accounts. Paste in → results out.
 
 **Status**: spec frozen 2026-05-11. Build *after* Rune Odds v0.3 ships. Don't bundle.
