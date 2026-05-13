@@ -212,8 +212,9 @@ Shipped (2026-05-11):
 - ~~Deck Pastebin v0.1 — paste a deck, see the mana curve~~
 
 Active queue:
-- **Deck Builder** — separate tool, drag-and-drop card selection + deck validation + integrated Rune Odds inline. The next standalone tool to start.
-- **Deck Pastebin v0.2** — cost spread derived from the deck's actual card costs (requires a card-database / name→cost lookup). See `docs/SPEC_decks_v0.1.md` §11.
+- **Rune Odds v0.4 (in progress, 2026-05-13)** — merge Deck Pastebin into Rune Odds as a third mode. `decks.witchtilt.com` is held back for the future Deck Builder; the standalone pastebin page becomes a coming-soon placeholder. Branch: `runes-unified-tool`.
+- **Deck Builder** — separate tool, drag-and-drop card selection + deck validation + integrated Rune Odds inline. Gated on Riot Developer API key approval, then takes over `decks.witchtilt.com`.
+- **Pastebin v0.2 (deferred into Rune Odds)** — cost spread derived from the deck's actual card costs, not just rune colors. Requires a name→cost lookup. Lands as a Rune Odds improvement after v0.4, no longer a standalone-tool release.
 - **Polish** — edge cases users surface, mobile refinements, og-image generation, social handles once first video lands.
 
 Queued:
