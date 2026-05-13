@@ -4,21 +4,28 @@ import { Suspense } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import RuneMode from "../components/rune-mode";
 import CardMode from "../components/card-mode";
+import DeckMode from "../components/decks/decklist-input";
 import InfoPopover from "../components/info-popover";
 import { ACTIVE_BTN, INACTIVE_BTN } from "../components/shared";
 
-type Mode = "card" | "rune";
+type Mode = "card" | "rune" | "deck";
+
+function parseMode(param: string | null): Mode {
+  if (param === "rune") return "rune";
+  if (param === "deck") return "deck";
+  return "card";
+}
 
 function Page() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
-  const mode: Mode = searchParams.get("mode") === "rune" ? "rune" : "card";
+  const mode = parseMode(searchParams.get("mode"));
 
   function changeMode(next: Mode) {
     const params = new URLSearchParams(searchParams.toString());
     if (next === "card") params.delete("mode");
-    else params.set("mode", "rune");
+    else params.set("mode", next);
     const qs = params.toString();
     router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
   }
@@ -45,9 +52,9 @@ function Page() {
           </p>
         </header>
 
-        {/* Top-level mode toggle: Card (default) vs Rune (v0.2 UI) */}
+        {/* Top-level mode toggle: Card (default) · Rune (v0.2 UI) · Deck (pastebin) */}
         <section className="mb-8">
-          <div className="grid w-full grid-cols-2 gap-2 sm:w-72">
+          <div className="grid w-full grid-cols-3 gap-2 sm:w-[28rem]">
             <button
               onClick={() => changeMode("card")}
               aria-pressed={mode === "card"}
@@ -62,10 +69,19 @@ function Page() {
             >
               Rune mode
             </button>
+            <button
+              onClick={() => changeMode("deck")}
+              aria-pressed={mode === "deck"}
+              className={`rounded-sm border px-3 py-2 font-mono text-sm transition ${mode === "deck" ? ACTIVE_BTN : INACTIVE_BTN}`}
+            >
+              Deck mode
+            </button>
           </div>
         </section>
 
-        {mode === "card" ? <CardMode /> : <RuneMode />}
+        {mode === "card" && <CardMode />}
+        {mode === "rune" && <RuneMode />}
+        {mode === "deck" && <DeckMode />}
 
         {/* Footer */}
         <footer className="border-t border-ink-700 pt-6 font-mono text-xs text-ink-500">
