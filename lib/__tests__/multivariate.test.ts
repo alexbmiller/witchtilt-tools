@@ -86,11 +86,11 @@ describe('multivariateHypergeom — hand-verified multivariate cases', () => {
   });
 
   // 2RR cost vs deck 4R 4B 4G with 4 channels (T2 going first):
-  // requirement is R>=2; the "2 generic" is satisfied automatically once sample >= totalCost.
+  // requirement is R>=2; the "2 Energy" is satisfied automatically once sample >= totalCost.
   // For the math layer, only color requirements matter here — same as previous case.
-  it('R≥2 result is independent of generic mana (math layer concern)', () => {
+  it('R≥2 result is independent of Energy (math layer concern)', () => {
     // Math layer just answers "given sample, do colors meet requirements?".
-    // Generic mana is the wrapper's job (step 3).
+    // Energy is the wrapper's job (step 3).
     expect(multivariateHypergeom(12, deck({ R: 4, B: 4, G: 4 }), 4, { R: 2 })).toBeCloseTo(
       201 / 495,
       12,

@@ -91,8 +91,8 @@ describe('probabilityCanCast — SPEC §8 mandatory cases', () => {
   });
 });
 
-describe('probabilityCanCast — generic mana mechanics', () => {
-  it('generic cost only ("3") needs 3 channels: 0 before T2 first-going', () => {
+describe('probabilityCanCast — Energy mechanics', () => {
+  it('pure-Energy cost ("3") needs 3 channels: 0 before T2 first-going', () => {
     // T1 going first: 2 channels < 3 totalCost → P = 0
     // T2 going first: 4 channels >= 3 → P = 1 (no color requirement)
     const cost = costOf('3');

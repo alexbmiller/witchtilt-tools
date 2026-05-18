@@ -6,7 +6,7 @@
  *     rune deck assuming nothing has been channeled yet.
  *   - probabilityCanCastMidGame: mid-game query, samples only from the
  *     unknown pile that remains face-down at currentTurn. The cumulative
- *     channel count (current + future) still has to pay generic mana.
+ *     channel count (current + future) still has to pay the Energy cost.
  *
  * Both compose:
  *   - runesSeenByTurn (probability.ts) → channel-count schedule.
@@ -15,12 +15,12 @@
  * Two short-circuit checks before delegating to multivariate:
  *
  *   1. totalCost === 0 → trivially castable (SPEC §5 case 4).
- *   2. channelsAvailable < totalCost → can't pay generic, return 0.
- *      Generic mana is purely a hand-size constraint at this layer.
+ *   2. channelsAvailable < totalCost → can't pay Energy, return 0.
+ *      Energy is purely a hand-size constraint at this layer.
  *
  * Mid-game caveat: probabilityCanCastMidGame computes P(NEW draws from the
  * pile alone satisfy cost.colors). Already-channeled runes count toward
- * generic but conservatively don't contribute color — if your existing rune
+ * Energy but conservatively don't contribute Power — if your existing rune
  * pool already covers part of the cost, treat it as paid and reduce your
  * cost before querying.
  */

@@ -61,7 +61,7 @@ export default function ManaCurveTable({ runes }: { runes: RuneCounts }) {
   const turns = showT5 ? ALL_TURNS : ALL_TURNS.slice(0, T4_INDEX + 1);
   const matrix = showT5 ? fullMatrix : fullMatrix.map((row) => row.slice(0, T4_INDEX + 1));
 
-  const onlyGeneric = costs.length === 3;
+  const onlyEnergy = costs.length === 3;
 
   async function handleCopy() {
     const text = buildShareText({ runes, costs, matrix, turns, goingFirst });
@@ -139,9 +139,9 @@ export default function ManaCurveTable({ runes }: { runes: RuneCounts }) {
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="font-mono text-xs text-ink-500">
-          {onlyGeneric ? (
+          {onlyEnergy ? (
             <>
-              No rune colors detected — only generic costs shown. Add rune lines like{" "}
+              No rune colors detected — only pure-Energy costs shown. Add rune lines like{" "}
               <span className="text-accent">12 Order Rune</span> to see colored cost rows.
             </>
           ) : (

@@ -7,44 +7,44 @@ function ok<T extends { ok: true; cost: unknown }>(r: T | { ok: false }) {
 }
 
 describe('parseCost — SPEC §2 canonical examples', () => {
-  it('"2RR" → generic=2, R:2, total=4', () => {
+  it('"2RR" → energy=2, R:2, total=4', () => {
     const r = parseCost('2RR');
     expect(r).toEqual({
       ok: true,
-      cost: { generic: 2, colors: { R: 2 }, totalCost: 4, raw: '2RR' },
+      cost: { energy: 2, colors: { R: 2 }, totalCost: 4, raw: '2RR' },
     });
   });
 
-  it('"1BG" → generic=1, B:1, G:1, total=3', () => {
+  it('"1BG" → energy=1, B:1, G:1, total=3', () => {
     const r = parseCost('1BG');
     expect(r).toEqual({
       ok: true,
-      cost: { generic: 1, colors: { B: 1, G: 1 }, totalCost: 3, raw: '1BG' },
+      cost: { energy: 1, colors: { B: 1, G: 1 }, totalCost: 3, raw: '1BG' },
     });
   });
 
-  it('"3" → generic=3, no colors, total=3', () => {
+  it('"3" → energy=3, no colors, total=3', () => {
     const r = parseCost('3');
     expect(r).toEqual({
       ok: true,
-      cost: { generic: 3, colors: {}, totalCost: 3, raw: '3' },
+      cost: { energy: 3, colors: {}, totalCost: 3, raw: '3' },
     });
   });
 
-  it('"RRR" → generic=0, R:3, total=3', () => {
+  it('"RRR" → energy=0, R:3, total=3', () => {
     const r = parseCost('RRR');
     expect(r).toEqual({
       ok: true,
-      cost: { generic: 0, colors: { R: 3 }, totalCost: 3, raw: 'RRR' },
+      cost: { energy: 0, colors: { R: 3 }, totalCost: 3, raw: 'RRR' },
     });
   });
 
-  it('"5RGBY" → generic=5, R:1 G:1 B:1 Y:1, total=9', () => {
+  it('"5RGBY" → energy=5, R:1 G:1 B:1 Y:1, total=9', () => {
     const r = parseCost('5RGBY');
     expect(r).toEqual({
       ok: true,
       cost: {
-        generic: 5,
+        energy: 5,
         colors: { R: 1, G: 1, B: 1, Y: 1 },
         totalCost: 9,
         raw: '5RGBY',
@@ -52,11 +52,11 @@ describe('parseCost — SPEC §2 canonical examples', () => {
     });
   });
 
-  it('"0" → generic=0, no colors, total=0 (trivial)', () => {
+  it('"0" → energy=0, no colors, total=0 (trivial)', () => {
     const r = parseCost('0');
     expect(r).toEqual({
       ok: true,
-      cost: { generic: 0, colors: {}, totalCost: 0, raw: '0' },
+      cost: { energy: 0, colors: {}, totalCost: 0, raw: '0' },
     });
   });
 });
@@ -75,7 +75,7 @@ describe('parseCost — accepted variants', () => {
     const r = parseCost('  2 R R  ');
     expect(r).toEqual({
       ok: true,
-      cost: { generic: 2, colors: { R: 2 }, totalCost: 4, raw: '  2 R R  ' },
+      cost: { energy: 2, colors: { R: 2 }, totalCost: 4, raw: '  2 R R  ' },
     });
   });
 
@@ -83,30 +83,30 @@ describe('parseCost — accepted variants', () => {
     const r = parseCost('2rb');
     expect(r).toEqual({
       ok: true,
-      cost: { generic: 2, colors: { R: 1, B: 1 }, totalCost: 4, raw: '2rb' },
+      cost: { energy: 2, colors: { R: 1, B: 1 }, totalCost: 4, raw: '2rb' },
     });
   });
 
-  it('handles multi-digit generic', () => {
+  it('handles multi-digit energy', () => {
     const r = parseCost('10R');
     expect(r).toEqual({
       ok: true,
-      cost: { generic: 10, colors: { R: 1 }, totalCost: 11, raw: '10R' },
+      cost: { energy: 10, colors: { R: 1 }, totalCost: 11, raw: '10R' },
     });
   });
 
-  it('handles leading zeros in generic', () => {
+  it('handles leading zeros in energy', () => {
     const r = parseCost('02R');
     expect(r).toEqual({
       ok: true,
-      cost: { generic: 2, colors: { R: 1 }, totalCost: 3, raw: '02R' },
+      cost: { energy: 2, colors: { R: 1 }, totalCost: 3, raw: '02R' },
     });
   });
 
   it('counts repeated colors in any order', () => {
     const r = parseCost('RBRBR');
     expect(ok(r)).toEqual({
-      generic: 0,
+      energy: 0,
       colors: { R: 3, B: 2 },
       totalCost: 5,
       raw: 'RBRBR',

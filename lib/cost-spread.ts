@@ -7,7 +7,7 @@
  * of the math layer.
  *
  * Spread shape:
- *   - Always:   `1`, `2`, `3`              (generic-only)
+ *   - Always:   `1`, `2`, `3`              (pure-Energy)
  *   - 1 color:  + `CC`, `1C`, `2C`         (3 colored rows)
  *   - 2 colors: also + `DD`, `1D`, `2D`,
  *                `CD`, `1CD`, `2CC`        (9 colored rows total)
