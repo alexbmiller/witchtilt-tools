@@ -300,6 +300,32 @@ describe('probabilityCanCast — edge cases', () => {
 });
 
 // ---------------------------------------------------------------------------
+// Deck-mode integration — mana-curve-table calls probabilityCanCast directly
+// ---------------------------------------------------------------------------
+
+describe('Deck-mode integration — corrected mapping flows through the mana curve', () => {
+  // mana-curve-table.tsx does: parseCost(spreadRow) → probabilityCanCast(...)
+  // This block exercises that exact pipeline on a spread row that v0.3 got
+  // wrong (any Power-bearing row at the early-turn threshold).
+
+  it('"2R" on 4R/4B/4G going first: T1 changes from 0 (v0.3) to 19/33 (v0.4)', () => {
+    // E=2, R:1. T1 first (n=2): energy gate 2 ≥ 2 ✓.
+    // P(R≥1 in 2 draws from 4R+8other) = 1 - C(8,2)/C(12,2) = 1 - 28/66 = 38/66 = 19/33.
+    // v0.3 needed totalCost=3 channels and returned 0.
+    const cost = costOf('2R');
+    const p = probabilityCanCast(cost, D444, 1, true);
+    expect(Math.abs(p - 19 / 33)).toBeLessThan(EPS);
+  });
+
+  it('"2R" T2 first is unchanged at 85/99 (regression check)', () => {
+    // 1 - C(8,4)/C(12,4) = 1 - 70/495 = 425/495 = 85/99. Both models agree.
+    const cost = costOf('2R');
+    const p = probabilityCanCast(cost, D444, 2, true);
+    expect(Math.abs(p - 85 / 99)).toBeLessThan(EPS);
+  });
+});
+
+// ---------------------------------------------------------------------------
 // Mid-game wrapper — corrected mapping flows through
 // ---------------------------------------------------------------------------
 
