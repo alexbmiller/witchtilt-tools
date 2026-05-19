@@ -44,7 +44,7 @@ function Page() {
               </h1>
               <InfoPopover />
             </div>
-            <span className="font-mono text-xs text-ink-500">v0.3 · riftbound tcg</span>
+            <span className="font-mono text-xs text-ink-500">v0.4 · riftbound tcg</span>
           </div>
           <p className="mt-3 max-w-prose text-sm text-ink-300">
             Hypergeometric probability for a 12-card rune deck. Tells you the odds of drawing what

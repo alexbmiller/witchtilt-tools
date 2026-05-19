@@ -481,13 +481,19 @@ export default function CardMode() {
 }
 
 function ParseFeedback({ cost }: { cost: CardCost }) {
-  // "Cost 2RR  →  Total: 4  ·  Energy: 2  ·  Red: 2"
-  const parts: string[] = [`Total: ${cost.totalCost}`];
+  // "Cost 4RR  →  Energy: 4  ·  Power: 2 Red"
+  // "Cost 3RB  →  Energy: 3  ·  Power: 1 Red, 1 Blue"
+  // "Cost RR   →  Power: 2 Red"
+  // Energy and Power are independent under v0.4 — no combined "total."
+  const parts: string[] = [];
   if (cost.energy > 0) parts.push(`Energy: ${cost.energy}`);
+  const powerParts: string[] = [];
   for (const c of COLORS) {
     const n = cost.colors[c];
-    if (n && n > 0) parts.push(`${COLOR_NAMES[c]}: ${n}`);
+    if (n && n > 0) powerParts.push(`${n} ${COLOR_NAMES[c]}`);
   }
+  if (powerParts.length > 0) parts.push(`Power: ${powerParts.join(", ")}`);
+  if (parts.length === 0) parts.push(`Energy: 0`);
   return (
     <span className="text-ink-300">
       <span className="text-ink-500">Cost </span>

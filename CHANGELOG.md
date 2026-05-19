@@ -4,6 +4,32 @@ All notable changes to `witchtilt-tools` will be documented here. Each tool vers
 
 ---
 
+## [Rune Odds 0.4.0] — 2026-05-19
+
+### Fixed
+
+- **Cost model corrected.** v0.3 modeled a cost like `2RR` as "≥4 runes channeled, of which ≥2 Red" — adding the color pips into the energy total. That isn't how Riftbound's cost mechanic works. Energy is paid by **exhausting** runes; Power is paid by **recycling** runes of the matching domain; and a single rune can do BOTH (exhausting and recycling are independent actions on the same card). So the two costs are checked against the same pool independently rather than added. Every probability the tool reported for a card with a Power component was systematically too pessimistic. Verified against riftbound.gg's beginner's guide, Riot's Grove Origins FAQ, and the Core Rules (RUP3).
+- **Worked checks (4R/4B/4G going first):** `4RR` T2 went from 0 to 201/495 ≈ 0.4061. `1RR` T1 went from 0 to 1/11 ≈ 0.0909. `3RB` T2 went from 0 to 356/495 ≈ 0.7192. `1RB` T1 went from 0 to 8/33 ≈ 0.2424. `2RR` T1 went from 0 to 1/11 ≈ 0.0909.
+- **What didn't change:** pure-Energy costs (`2`, `3`, `5`, `0`) were always correct. Pure-Power costs (`RR`, `RB`, `RRR`) were coincidentally correct in v0.3 because they had no Energy to mis-sum. Any cell at T2+ for the canonical 4-4-4 / 6-6 / 8-4 splits is unchanged because the multivariate engine is unchanged and both gate models pass by then.
+
+### Changed
+
+- **Vocabulary.** `CardCost.generic` → `CardCost.energy` through the parser, types, UI labels (`Generic: 2` → `Energy: 2`), and the cost-spread helper. Tool now speaks Riftbound's exact vocabulary: Energy, Power, Exhaust, Recycle, Channel. Grammar is unchanged — `2RR` still parses identically.
+- **Version badge** in the Rune Odds header bumped to v0.4.
+
+### Internal
+
+- **Math engine untouched.** `multivariateHypergeom` is unchanged. The bug was upstream in the cost-to-requirement mapping in `probabilityCanCast` / `probabilityCanCastMidGame` — they now gate on `channels ≥ cost.energy` and delegate per-color minima to multivariate.
+- **Modes inheritance.** Card mode (direct call) and Deck mode (mana-curve table, same wrapper) both inherit the fix automatically. Rune mode is v0.2 univariate with no cost concept — preserved verbatim per SPEC v0.4 §3, intentionally untouched.
+- **Test suite rebuilt** against SPEC v0.4 §3 worked checks, with exact-fraction assertions. Pure-Energy / pure-Power regressions pin that costs v0.3 got right are unchanged. Test count 105 → 118.
+- **Hand-off doc** `docs/v0.4-video-deltas.md` tabulates every `2RR` cell across 4-4-4 / 6-6 / 8-4 splits and both turn orders for Video #1 re-recording.
+
+### Note for the channel
+
+Video #1 was held in pre-production specifically to gate on this fix. Pope identified the cost-model bug from playing the actual game — the discrepancy between the tool's predictions and live games surfaced the issue. Every on-screen number in Video #1 must be re-walked against `docs/v0.4-video-deltas.md` before recording. **The tool's whole value proposition is being correct;** a compelling video with the wrong hero number undermines everything downstream.
+
+---
+
 ## [Deck Pastebin 0.1.0] — 2026-05-11
 
 ### Added
