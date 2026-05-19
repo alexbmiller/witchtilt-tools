@@ -5,22 +5,21 @@
  *   - probabilityCanCast: deckbuilding query, samples from the full 12-card
  *     rune deck assuming nothing has been channeled yet.
  *   - probabilityCanCastMidGame: mid-game query, samples only from the
- *     unknown pile that remains face-down at currentTurn. The cumulative
- *     channel count (current + future) still has to pay generic mana.
+ *     unknown pile that remains face-down at currentTurn.
  *
- * Both compose:
+ * Cost model (SPEC v0.4 §3): castable iff
+ *   (1) total channeled runes ≥ Energy            (exhaust to pay Energy), AND
+ *   (2) for every color c: channeled[c] ≥ req[c]  (recycle to pay Power)
+ * A single rune can satisfy BOTH — exhausting and recycling are independent
+ * actions on the same card. So Power pips are NOT added to the Energy total;
+ * the two parts are checked against the same pool independently.
+ *
  *   - runesSeenByTurn (probability.ts) → channel-count schedule.
  *   - multivariateHypergeom (multivariate.ts) → P(color requirements met).
  *
- * Two short-circuit checks before delegating to multivariate:
- *
- *   1. totalCost === 0 → trivially castable (SPEC §5 case 4).
- *   2. channelsAvailable < totalCost → can't pay generic, return 0.
- *      Generic mana is purely a hand-size constraint at this layer.
- *
  * Mid-game caveat: probabilityCanCastMidGame computes P(NEW draws from the
  * pile alone satisfy cost.colors). Already-channeled runes count toward
- * generic but conservatively don't contribute color — if your existing rune
+ * Energy but conservatively don't contribute Power — if your existing rune
  * pool already covers part of the cost, treat it as paid and reduce your
  * cost before querying.
  */
@@ -28,16 +27,22 @@ import { runesSeenByTurn } from "./probability";
 import { multivariateHypergeom } from "./multivariate";
 import { COLORS, type CardCost, type Color } from "./cost-parser";
 
+function colorReqSum(cost: CardCost): number {
+  let s = 0;
+  for (const c of COLORS) s += cost.colors[c] ?? 0;
+  return s;
+}
+
 export function probabilityCanCast(
   cost: CardCost,
   deckComposition: Record<Color, number>,
   turn: number,
   goingFirst: boolean,
 ): number {
-  if (cost.totalCost === 0) return 1;
+  if (cost.energy === 0 && colorReqSum(cost) === 0) return 1;
 
   const channelsSeen = runesSeenByTurn(turn, goingFirst);
-  if (channelsSeen < cost.totalCost) return 0;
+  if (channelsSeen < cost.energy) return 0;
 
   return multivariateHypergeom(12, deckComposition, channelsSeen, cost.colors);
 }
@@ -49,11 +54,11 @@ export function probabilityCanCastMidGame(
   queryTurn: number,
   goingFirst: boolean,
 ): number {
-  if (cost.totalCost === 0) return 1;
+  if (cost.energy === 0 && colorReqSum(cost) === 0) return 1;
   if (queryTurn <= currentTurn) return 0;
 
   const channelsByQuery = runesSeenByTurn(queryTurn, goingFirst);
-  if (channelsByQuery < cost.totalCost) return 0;
+  if (channelsByQuery < cost.energy) return 0;
 
   const channelsByCurrent = runesSeenByTurn(currentTurn, goingFirst);
   const newDraws = channelsByQuery - channelsByCurrent;

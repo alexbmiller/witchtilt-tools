@@ -6,11 +6,11 @@ function runes(partial: Partial<RuneCounts>): RuneCounts {
 }
 
 describe('generateCostSpread', () => {
-  it('returns generic-only when the rune pool is empty', () => {
+  it('returns pure-Energy rows when the rune pool is empty', () => {
     expect(generateCostSpread(runes({}))).toEqual(['1', '2', '3']);
   });
 
-  it('mono-color: 6 rows = 3 generic + CC, 1C, 2C', () => {
+  it('mono-color: 6 rows = 3 pure-Energy + CC, 1C, 2C', () => {
     expect(generateCostSpread(runes({ Y: 12 }))).toEqual([
       '1', '2', '3',
       'YY', '1Y', '2Y',
@@ -41,7 +41,7 @@ describe('generateCostSpread', () => {
     expect(result[3]).toBe('BB');     // primary doubled
     expect(result[6]).toBe('YY');     // secondary doubled
     expect(result[9]).toBe('BY');     // mixed
-    expect(result[11]).toBe('2BB');   // generic-into-primary-doubled
+    expect(result[11]).toBe('2BB');   // energy-into-primary-doubled
   });
 
   it('breaks ties on count by canonical RBPOGY order', () => {

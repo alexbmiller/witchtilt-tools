@@ -481,9 +481,9 @@ export default function CardMode() {
 }
 
 function ParseFeedback({ cost }: { cost: CardCost }) {
-  // "Cost 2RR  →  Total: 4  ·  Generic: 2  ·  Red: 2"
+  // "Cost 2RR  →  Total: 4  ·  Energy: 2  ·  Red: 2"
   const parts: string[] = [`Total: ${cost.totalCost}`];
-  if (cost.generic > 0) parts.push(`Generic: ${cost.generic}`);
+  if (cost.energy > 0) parts.push(`Energy: ${cost.energy}`);
   for (const c of COLORS) {
     const n = cost.colors[c];
     if (n && n > 0) parts.push(`${COLOR_NAMES[c]}: ${n}`);
