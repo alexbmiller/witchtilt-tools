@@ -4,7 +4,8 @@ Per-repo bootstrap. Future Claude Code sessions read this first.
 
 Cross-references:
 - Project HQ in Notion: https://www.notion.so/3586b24433768182a15ffac7f3beac3e (Riftbound Channel HQ; Tool Roadmap and Brand Kit are sub-pages).
-- v0.3 architecture spec: `docs/SPEC_v0.3.md` (frozen 2026-05-11; color codes, cost grammar, multivariate model, build order).
+- Architecture specs (read in order): `docs/SPEC_v0.3.md` (v0.3 baseline frozen 2026-05-11; color codes, cost grammar, multivariate model, build order) → `docs/SPEC_v0.4.md` (v0.4 cost-model correction frozen 2026-05-18; Energy/Power independence). The v0.4 spec supersedes v0.3 on the cost-to-requirement mapping; everything else from v0.3 still stands.
+- Video-number hand-off: `docs/v0.4-video-deltas.md` (old-vs-new probabilities for Video #1 re-recording).
 - Strategic / scope decisions: the "Croupier" chat in Claude Desktop. Larger-scope project direction is decided there, not in this repo. Flag apparent contradictions rather than silently overriding.
 
 ---
@@ -13,14 +14,14 @@ Cross-references:
 
 This repo (renamed from `riftbound-runes` → `witchtilt-tools` on 2026-05-11) hosts the **WitchTilt** site and its tools — a Riftbound TCG (and eventually broader card-game) toolset paired with a YouTube channel that covers strategy with a debate-comedy voice. The tools exist partly for the channel's content and partly as standalone player utilities.
 
-Live (as of 2026-05-11):
+Live (as of 2026-05-19):
 - **Landing**: https://www.witchtilt.com — hero + tools grid + about strip
-- **Rune Odds**: https://runes.witchtilt.com (path: `/runes`) — hypergeometric probability calculator for the 12-card rune deck
-- **Deck Pastebin**: https://decks.witchtilt.com (path: `/decks`) — paste a decklist, see the mana curve
+- **Rune Odds**: https://runes.witchtilt.com (path: `/runes`) — three modes in one tool (Card / Rune / Deck). Card-mode cost model corrected in v0.4 (2026-05-19).
+- **Deck Builder (placeholder)**: https://decks.witchtilt.com (path: `/decks`) — coming-soon page. The original Deck Pastebin was unified into Rune Odds as the Deck mode in PR #13 (2026-05-13); `decks.witchtilt.com` is reserved for the actual Deck Builder, gated on Riot Developer API key approval.
 
-All three serve from a single Vercel deployment via subdomain rewrites in `next.config.js`. Custom domain via Cloudflare Registrar (acquired 2026-05-09).
+All routes serve from a single Vercel deployment via subdomain rewrites in `next.config.js`. Custom domain via Cloudflare Registrar (acquired 2026-05-09).
 
-**Active strategic shift (2026-05-13)**: the Deck Pastebin is being merged into Rune Odds as a third mode. `decks.witchtilt.com` is being held back for the future Deck Builder, which is gated on Riot Developer API key approval. Work in flight on branch `runes-unified-tool` — after it ships, `/decks` becomes a coming-soon placeholder. Apparent contradictions with this should be flagged rather than silently overridden; strategic decisions originate in the Croupier chat (Claude Desktop), not in this repo.
+Strategic decisions originate in the Croupier chat (Claude Desktop), not in this repo. Flag apparent contradictions rather than silently overriding.
 
 ---
 
@@ -52,9 +53,16 @@ The rune deck is **12 cards, sealed pre-game**.
 - `R` = Red / Fury · `B` = Blue / Mind · `P` = Purple / Chaos
 - `O` = Orange / Body · `G` = Green / Calm · `Y` = Yellow / Order
 
-**Two top-level modes** (v0.3+):
-1. **Card mode** (default) — input is a parsed card cost (e.g. `2RR`) + per-color deck composition. Uses **multivariate** hypergeometric to compute P(can cast cost by turn N). Generic mana is a separate hand-size check; color requirements run through the multivariate sum over the deck partition.
-2. **Rune mode** — v0.2 calculator, preserved verbatim. Single-color "≥k by turn N" queries.
+**Cost model (v0.4, SPEC_v0.4.md §3)** — Riftbound costs have two independent parts:
+- **Energy** (the number, e.g. the `4` in `4RR`): paid by **exhausting** runes. Any color. 1 energy per rune exhausted.
+- **Power** (the colored pips, e.g. the `RR` in `4RR`): paid by **recycling** runes of the matching domain. 1 power per rune recycled.
+
+A single rune can pay BOTH — exhaust and recycle are independent actions on the same card. So `castable(cost)` is `total_channeled ≥ energy AND for-every-color: channeled[c] ≥ req[c]` — the two parts are checked against the same pool independently, **NOT summed**. v0.3 wrongly summed them and was systematically too pessimistic for any cost with a Power component; v0.4 corrected this.
+
+**Three top-level modes**:
+1. **Card mode** (default) — input is a parsed card cost (e.g. `2RR`) + per-color deck composition. Uses **multivariate** hypergeometric to compute P(can cast cost by turn N). The cost-to-requirement mapping (the v0.4 fix) lives in `lib/card-mode.ts:probabilityCanCast` — energy gate + per-color minima passed to multivariate.
+2. **Rune mode** — v0.2 calculator, preserved verbatim. Single-color "≥k by turn N" queries. **Has no cost concept** and is unaffected by the v0.4 fix by design.
+3. **Deck mode** — paste-a-decklist mana curve. Calls the same `probabilityCanCast` wrapper as Card mode, so it auto-inherits the v0.4 fix.
 
 Each mode has **Deckbuilding** and **Mid-game** sub-modes:
 - **Deckbuilding**: fresh, full 12-card deck.
@@ -82,6 +90,8 @@ Summed over all (k_c) where k_c ≥ r_c for required colors. Non-required colors
 
 ## Locked rules — do not reintroduce earlier mistakes
 
+- **Don't sum Power pips into the Energy total.** A cost like `2RR` is "Energy: 2 · Power: 2 Red" — needs ≥2 channels AND ≥2 Red, NOT ≥4 channels. v0.3 had this bug; v0.4 fixed it. The cost-to-requirement mapping lives in `lib/card-mode.ts:probabilityCanCast`; the multivariate engine itself is correct and untouched. If you find yourself adding `cost.energy + sum(cost.colors)` anywhere as a castability threshold, you're regressing the v0.4 fix.
+- **Speak Riftbound vocabulary in UI copy.** Energy / Power / Exhaust / Recycle / Channel. Not "generic," not "total cost," not "mana." `CardCost.energy` (the parsed field, renamed from `generic` in v0.4) and `CardCost.colors` are the two cost components — there is no combined total displayed to users.
 - **No opening hand of runes.** The 4-card opening hand comes from the **main deck**, not the rune deck. Channeling starts T1 and only T1.
 - **No "shuffle on recycle".** Recycling goes to bottom, deterministically. Don't model it as a re-randomization.
 - **Don't assume the rune deck depletes naturally.** It only changes via recycling. Without recycling actions, the same 12 cards rotate over the course of a game.
@@ -111,15 +121,17 @@ witchtilt-tools/
 │       └── decks/                # DecklistInput, ManaCurveTable
 ├── lib/
 │   ├── probability.ts            # v0.2 univariate hypergeom + mid-game pile math + binom (exported)
-│   ├── cost-parser.ts            # Card cost grammar (Color types, parseCost)
-│   ├── multivariate.ts           # multivariateHypergeom over named colors
-│   ├── card-mode.ts              # probabilityCanCast + probabilityCanCastMidGame wrappers
+│   ├── cost-parser.ts            # Card cost grammar (Color types, parseCost). CardCost.energy (renamed from `generic` in v0.4).
+│   ├── multivariate.ts           # multivariateHypergeom over named colors. Untouched by v0.4 — engine was correct.
+│   ├── card-mode.ts              # probabilityCanCast + probabilityCanCastMidGame wrappers. v0.4 fix lives here: energy gate + per-color minima, NOT summed.
 │   ├── decklist-parser.ts        # Pastebin: text → ParsedDeck (cards + runes + warnings)
 │   ├── cost-spread.ts            # Pastebin: pick representative costs from rune-color composition
 │   ├── share-text.ts             # Pastebin: build copy-shareable mana-curve text block
-│   └── __tests__/                # Vitest suite (105 tests as of Deck Pastebin v0.1)
+│   └── __tests__/                # Vitest suite (118 tests as of Rune Odds v0.4)
 ├── docs/
 │   ├── SPEC_v0.3.md              # Rune Odds v0.3 architecture spec (frozen 2026-05-11)
+│   ├── SPEC_v0.4.md              # Rune Odds v0.4 cost-model correction spec (frozen 2026-05-18)
+│   ├── v0.4-video-deltas.md      # Old-vs-new probability table for Video #1 re-recording
 │   └── SPEC_decks_v0.1.md        # Deck Pastebin v0.1 spec (ARCHIVED 2026-05-13; superseded by unification)
 ├── tailwind.config.js            # ink-* scale + accent (muted gold #d4af37)
 ├── next.config.js                # Subdomain rewrites (runes.* / decks.* → /runes /decks)
@@ -176,12 +188,16 @@ Confident, slightly nerdy, slightly funny. Comedy-debate energy. Not corporate, 
 
 ## Roadmap (active queue; see Tool Roadmap in Notion for the full list)
 
-1. **Rune Odds v0.3 (shipped 2026-05-11)** — Card mode with multi-color AND queries, multivariate hypergeom, Card-mode mid-game support, info popover, Vitest suite, repo rename.
-2. **Site buildout (shipped 2026-05-11)** — landing page at `/`, Rune Odds at `runes.witchtilt.com`, Deck Pastebin at `decks.witchtilt.com`, subdomain rewrites in `next.config.js`.
-3. **Deck Pastebin v0.1 (shipped 2026-05-11)** — paste a decklist → mana curve via the existing math layer.
-4. **Rune Odds v0.4 (in progress, branch `runes-unified-tool`)** — merge Deck Pastebin into Rune Odds as a third mode; `/decks` becomes a coming-soon placeholder; `decks.witchtilt.com` reserved for the future Deck Builder.
-5. **Deck Builder** — separate tool, drag-and-drop card selection + deck validation + integrated Rune Odds inline. Gated on Riot Developer API key approval.
-6. Pack EV / Collection Tracker, Main Deck Probability Calculator, Resolution Order Sequencer, Draft Simulator — all queued.
+Shipped:
+1. **Rune Odds v0.3 (2026-05-11)** — Card mode with multi-color AND queries, multivariate hypergeom, Card-mode mid-game support, info popover, Vitest suite, repo rename.
+2. **Site buildout (2026-05-11)** — landing page at `/`, Rune Odds at `runes.witchtilt.com`, Deck Pastebin at `decks.witchtilt.com`, subdomain rewrites in `next.config.js`.
+3. **Deck Pastebin v0.1 (2026-05-11)** — paste a decklist → mana curve via the existing math layer.
+4. **Unified Rune Odds (2026-05-13, PR #13)** — Deck Pastebin merged into Rune Odds as a third mode; `/decks` became a coming-soon placeholder; `decks.witchtilt.com` reserved for the future Deck Builder.
+5. **Rune Odds v0.4 cost-model fix (2026-05-19, PR #14/#15)** — corrected Energy/Power independence (no longer summed), parser field renamed `generic` → `energy`, UI uses Riftbound vocabulary throughout. Gates Video #1; see `docs/SPEC_v0.4.md` and `docs/v0.4-video-deltas.md`. **Hand-verified** against the four §3 worked checks (`4RR`, `1RR`, `3RB`, `2RR`).
+
+Next up:
+6. **Deck Builder** — separate tool, drag-and-drop card selection + deck validation + integrated Rune Odds inline. Gated on Riot Developer API key approval.
+7. Pack EV / Collection Tracker, Main Deck Probability Calculator, Resolution Order Sequencer, Draft Simulator — all queued.
 
 ---
 
